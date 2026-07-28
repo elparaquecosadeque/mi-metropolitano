@@ -4,6 +4,30 @@
     <span class="time">{{ formatTime(now()) }}</span>
   </header>
 
+  <!-- Planning time banner (shown when using manual time) -->
+  @if (isManualTime()) {
+    <div class="planning-banner">
+      📅 Consultando para {{ formatDate(now()) }} {{ formatTime(now()) }}
+      <button class="reset-time-btn" (click)="resetToNow()">Usar hora actual</button>
+    </div>
+  }
+
+  <!-- Time selector -->
+  <section class="time-selector">
+    <label for="time-input">Consultar para:</label>
+    <div class="time-row">
+      <input
+        id="time-input"
+        type="datetime-local"
+        [value]="datetimeInputValue"
+        (change)="onDatetimeChange($any($event.target).value)"
+      />
+      @if (isManualTime()) {
+        <button class="now-btn" (click)="resetToNow()" title="Volver a hora actual">⏱ Ahora</button>
+      }
+    </div>
+  </section>
+
   <!-- Favorites bar -->
   @if (favorites().length > 0) {
     <section class="favorites">
@@ -74,7 +98,6 @@
                 <span class="alighting">🏁 {{ leg.alightingStation.name }}</span>
               </div>
 
-              <!-- Availability indicator -->
               @if (leg.available) {
                 @if (isSoonClose(leg)) {
                   <div class="chip chip-amber">

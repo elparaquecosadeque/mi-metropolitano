@@ -33,6 +33,83 @@ header {
   }
 }
 
+// ── Planning banner ─────────────────────────────────────────────────────────
+.planning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: #e67e22;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.reset-time-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  &:hover { background: rgba(255,255,255,0.35); }
+}
+
+// ── Time selector ─────────────────────────────────────────────────────────────
+.time-selector {
+  background: #16213e;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #aaa;
+    margin-bottom: 0.4rem;
+  }
+}
+
+.time-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  input[type="datetime-local"] {
+    background: #0f3460;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 0;
+    color-scheme: dark;
+
+    &:focus { outline: 2px solid #27ae60; border-color: #27ae60; }
+  }
+}
+
+.now-btn {
+  background: #27ae60;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover { background: #2ecc71; }
+}
+
 // ── Favorites ──────────────────────────────────────────────────────────────
 .favorites {
   display: flex;

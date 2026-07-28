@@ -8,6 +8,11 @@ import { STATIONS } from '../data/routes';
 const FAVORITES_KEY = 'metro_favorites';
 const THRESHOLD = 30;
 
+function toDatetimeLocal(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 @Component({
   selector: 'app-planner',
   standalone: true,
@@ -21,9 +26,13 @@ export class PlannerComponent implements OnDestroy {
   originId = signal('');
   destinationId = signal('');
   now = signal(new Date());
+  isManualTime = signal(false);
+  datetimeInputValue = toDatetimeLocal(new Date());
   favorites = signal<Favorite[]>(this.loadFavorites());
 
-  private ticker = setInterval(() => this.now.set(new Date()), 60_000);
+  private ticker = setInterval(() => {
+    if (!this.isManualTime()) this.now.set(new Date());
+  }, 60_000);
 
   readonly options = computed<RouteOption[]>(() => {
     const o = this.originId();
@@ -36,6 +45,22 @@ export class PlannerComponent implements OnDestroy {
 
   ngOnDestroy() {
     clearInterval(this.ticker);
+  }
+
+  onDatetimeChange(value: string) {
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) {
+      this.now.set(parsed);
+      this.isManualTime.set(true);
+      this.datetimeInputValue = value;
+    }
+  }
+
+  resetToNow() {
+    const now = new Date();
+    this.now.set(now);
+    this.datetimeInputValue = toDatetimeLocal(now);
+    this.isManualTime.set(false);
   }
 
   swap() {
@@ -72,7 +97,6 @@ export class PlannerComponent implements OnDestroy {
     return `${o} → ${d}`;
   }
 
-  // Helpers for template
   isSoonClose(leg: RouteLeg): boolean {
     return leg.minutesToClose !== null && leg.minutesToClose <= THRESHOLD;
   }
@@ -83,6 +107,10 @@ export class PlannerComponent implements OnDestroy {
 
   formatTime(date: Date): string {
     return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+
+  formatDate(date: Date): string {
+    return date.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
   }
 
   private loadFavorites(): Favorite[] {
