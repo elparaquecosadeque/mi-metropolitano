@@ -1,0 +1,222 @@
+:host {
+  display: block;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a2e;
+  min-height: 100vh;
+  color: #eee;
+}
+
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 2px solid #27ae60;
+  margin-bottom: 1rem;
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #27ae60;
+  }
+
+  .time {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #f9ca24;
+  }
+}
+
+// ── Favorites ──────────────────────────────────────────────────────────────
+.favorites {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.fav-btn {
+  background: #16213e;
+  color: #f9ca24;
+  border: 1px solid #f9ca24;
+  border-radius: 20px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover { background: #f9ca24; color: #1a1a2e; }
+
+  .remove {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    padding: 0 2px;
+
+    &:hover { opacity: 1; }
+  }
+}
+
+.save-fav-btn {
+  background: transparent;
+  border: 1px solid #f9ca24;
+  color: #f9ca24;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  width: 100%;
+
+  &:hover { background: #f9ca24; color: #1a1a2e; }
+}
+
+// ── Inputs ──────────────────────────────────────────────────────────────────
+.inputs {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
+
+  label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #aaa;
+  }
+
+  select {
+    background: #0f3460;
+    color: #eee;
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    appearance: auto;
+    cursor: pointer;
+
+    &:focus { outline: 2px solid #27ae60; }
+
+    option { background: #0f3460; }
+  }
+}
+
+.swap-btn {
+  display: block;
+  margin: 0.25rem auto 0.75rem;
+  background: #0f3460;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { background: #27ae60; color: #fff; }
+}
+
+// ── Results ─────────────────────────────────────────────────────────────────
+.hint {
+  text-align: center;
+  color: #888;
+  margin-top: 2rem;
+}
+
+.option-card {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #27ae60;
+
+  &.unavailable { border-left-color: #c0392b; opacity: 0.8; }
+}
+
+.transfer-label {
+  font-size: 0.8rem;
+  color: #f9ca24;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.leg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.route-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  width: fit-content;
+  color: #fff;
+
+  .route-type {
+    font-size: 0.65rem;
+    font-weight: normal;
+    opacity: 0.85;
+    text-transform: capitalize;
+  }
+}
+
+.stations {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+
+  .boarding { color: #74b9ff; }
+  .alighting { color: #55efc4; }
+  .arrow { color: #aaa; }
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+
+  &-green  { background: #27ae60; color: #fff; }
+  &-red    { background: #c0392b; color: #fff; display: flex; flex-direction: column; gap: 0.2rem; }
+  &-amber  { background: #e67e22; color: #fff; }
+
+  .schedule {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+}
+
+.transfer-divider {
+  text-align: center;
+  color: #f9ca24;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}

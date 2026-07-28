@@ -1,0 +1,110 @@
+<div class="app">
+  <header>
+    <h1>🚌 Metropolitano</h1>
+    <span class="time">{{ formatTime(now()) }}</span>
+  </header>
+
+  <!-- Favorites bar -->
+  @if (favorites().length > 0) {
+    <section class="favorites">
+      @for (fav of favorites(); track fav.origin + fav.destination; let i = $index) {
+        <button class="fav-btn" (click)="applyFavorite(fav)" title="{{ favoriteName(fav) }}">
+          ⭐ {{ favoriteName(fav) }}
+          <span class="remove" (click)="$event.stopPropagation(); removeFavorite(i)">✕</span>
+        </button>
+      }
+    </section>
+  }
+
+  <!-- Station selectors -->
+  <section class="inputs">
+    <div class="input-row">
+      <label for="origin">Desde</label>
+      <select id="origin" [ngModel]="originId()" (ngModelChange)="originId.set($event)">
+        <option value="">— selecciona estación —</option>
+        @for (s of stations; track s.id) {
+          <option [value]="s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+
+    <button class="swap-btn" (click)="swap()" title="Intercambiar origen y destino">⇅</button>
+
+    <div class="input-row">
+      <label for="destination">Hasta</label>
+      <select id="destination" [ngModel]="destinationId()" (ngModelChange)="destinationId.set($event)">
+        <option value="">— selecciona estación —</option>
+        @for (s of stations; track s.id) {
+          <option [value]="s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (originId() && destinationId() && originId() !== destinationId()) {
+      <button class="save-fav-btn" (click)="saveFavorite()" title="Guardar como favorito">⭐ Guardar</button>
+    }
+  </section>
+
+  <!-- Results -->
+  <section class="results">
+    @if (!originId() || !destinationId()) {
+      <p class="hint">Selecciona origen y destino para ver opciones.</p>
+    } @else if (originId() === destinationId()) {
+      <p class="hint">El origen y destino son la misma estación.</p>
+    } @else if (options().length === 0) {
+      <p class="hint">No se encontraron rutas entre estas estaciones.</p>
+    } @else {
+      @for (opt of options(); track opt.legs[0].route.id + opt.type + $index) {
+        <div class="option-card" [class.unavailable]="!opt.legs[0].available">
+
+          @if (opt.type === 'transfer') {
+            <div class="transfer-label">🔄 Trasbordo en Estación Central</div>
+          }
+
+          @for (leg of opt.legs; track leg.route.id; let last = $last) {
+            <div class="leg">
+              <div class="route-badge" [style.background]="leg.route.color">
+                {{ leg.route.name }}
+                <span class="route-type">{{ leg.route.type }}</span>
+              </div>
+
+              <div class="stations">
+                <span class="boarding">📍 {{ leg.boardingStation.name }}</span>
+                <span class="arrow">→</span>
+                <span class="alighting">🏁 {{ leg.alightingStation.name }}</span>
+              </div>
+
+              <!-- Availability indicator -->
+              @if (leg.available) {
+                @if (isSoonClose(leg)) {
+                  <div class="chip chip-amber">
+                    ⚠️ Termina en {{ leg.minutesToClose }} min — ¡tómalo ahora!
+                  </div>
+                } @else {
+                  <div class="chip chip-green">✅ Disponible</div>
+                }
+              } @else {
+                @if (isSoonOpen(leg)) {
+                  <div class="chip chip-amber">
+                    🕐 Inicia en {{ leg.minutesToOpen }} min
+                  </div>
+                } @else {
+                  <div class="chip chip-red">
+                    🔴 No disponible
+                    @for (sch of leg.route.schedules; track $index) {
+                      <span class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</span>
+                    }
+                  </div>
+                }
+              }
+            </div>
+
+            @if (!last) {
+              <div class="transfer-divider">↓ trasbordar en <strong>Estación Central</strong></div>
+            }
+          }
+        </div>
+      }
+    }
+  </section>
+</div>
