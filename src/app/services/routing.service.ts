@@ -73,7 +73,7 @@ export class RoutingService {
     for (const route of ROUTES) {
       const leg = this.buildLeg(route, originId, destinationId, now);
       if (!leg) continue;
-      options.push({ type: 'direct', legs: [leg], score: this.scoreDirect(leg) });
+      options.push({ type: 'direct', legs: [leg], score: this.scoreDirect(leg), backtrackStops: 0 });
     }
     return options;
   }
@@ -86,12 +86,17 @@ export class RoutingService {
 
     const originPos = GEO_POS.get(originId) ?? 0;
     const destPos   = GEO_POS.get(destinationId) ?? 43;
+    const goingSouth = destPos > originPos;
 
     for (const hub of ALL_TRANSFER_STATIONS) {
       if (hub === originId || hub === destinationId) continue;
 
       const hubPos = GEO_POS.get(hub) ?? 0;
       if (!isOnPath(originPos, hubPos, destPos)) continue;
+
+      const backtrackStops = goingSouth
+        ? Math.max(0, originPos - hubPos)   // hub north of origin when going south
+        : Math.max(0, hubPos - originPos);  // hub south of origin when going north
 
       for (const r1 of ROUTES) {
         const leg1 = this.buildLeg(r1, originId, hub, now);
@@ -109,7 +114,8 @@ export class RoutingService {
           options.push({
             type: 'transfer',
             legs: [leg1, leg2],
-            score: this.scoreTransfer([leg1, leg2]),
+            score: this.scoreTransfer([leg1, leg2], backtrackStops),
+            backtrackStops,
           });
         }
       }
@@ -125,12 +131,17 @@ export class RoutingService {
 
     const originPos = GEO_POS.get(originId) ?? 0;
     const destPos   = GEO_POS.get(destinationId) ?? 43;
+    const goingSouth = destPos > originPos;
 
     for (let i = 0; i < MAIN_HUBS.length; i++) {
       const hub1 = MAIN_HUBS[i];
       if (hub1 === originId || hub1 === destinationId) continue;
       const hub1Pos = GEO_POS.get(hub1) ?? 0;
       if (!isOnPath(originPos, hub1Pos, destPos)) continue;
+
+      const backtrackStops = goingSouth
+        ? Math.max(0, originPos - hub1Pos)
+        : Math.max(0, hub1Pos - originPos);
 
       for (let j = 0; j < MAIN_HUBS.length; j++) {
         if (i === j) continue;
@@ -160,7 +171,8 @@ export class RoutingService {
               options.push({
                 type: 'transfer',
                 legs: [leg1, leg2, leg3],
-                score: this.scoreTransfer([leg1, leg2, leg3]),
+                score: this.scoreTransfer([leg1, leg2, leg3], backtrackStops),
+                backtrackStops,
               });
             }
           }
@@ -181,7 +193,7 @@ export class RoutingService {
     return 7;
   }
 
-  private scoreTransfer(legs: RouteLeg[]): number {
+  private scoreTransfer(legs: RouteLeg[], backtrackStops: number): number {
     const allAvail = legs.every((l) => l.available);
     const expresoCount = legs.filter((l) => l.route.type === 'expreso').length;
     const transferCount = legs.length - 1;
@@ -189,9 +201,13 @@ export class RoutingService {
     if (!allAvail) return 8;
 
     const tierBase = transferCount === 1 ? 0 : 2;
-    if (expresoCount === legs.length) return 3 + tierBase;
-    if (expresoCount > 0)             return 4 + tierBase;
-    return 5 + tierBase;
+    let base: number;
+    if (expresoCount === legs.length) base = 3 + tierBase;
+    else if (expresoCount > 0)        base = 4 + tierBase;
+    else                              base = 5 + tierBase;
+
+    // Small penalty: ranks backtracking options after non-backtracking ones within same tier
+    return base + backtrackStops * 0.1;
   }
 
   // ── Leg builder ─────────────────────────────────────────────────────────────

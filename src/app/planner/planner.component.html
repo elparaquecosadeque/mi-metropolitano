@@ -103,6 +103,11 @@
 
           @if (opt.type === 'transfer') {
             <div class="transfer-label">🔄 {{ opt.legs.length - 1 }} trasbordo{{ opt.legs.length > 2 ? 's' : '' }}</div>
+            @if (opt.backtrackStops > 0) {
+              <div class="backtrack-note">
+                ↩ Retrocedes {{ opt.backtrackStops }} estación{{ opt.backtrackStops !== 1 ? 'es' : '' }} para conectar
+              </div>
+            }
           }
 
           @for (leg of opt.legs; track leg.route.id; let last = $last) {

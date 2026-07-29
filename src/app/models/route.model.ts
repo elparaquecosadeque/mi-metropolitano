@@ -31,6 +31,7 @@ export interface RouteOption {
   type: 'direct' | 'transfer';
   legs: RouteLeg[];
   score: number; // lower = better
+  backtrackStops: number; // stations you go backward before first transfer hub (0 = no backtrack)
 }
 
 export interface RouteLeg {

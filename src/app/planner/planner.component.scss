@@ -318,6 +318,13 @@ header {
   &.unavailable { border-left-color: var(--c-danger); opacity: 0.8; }
 }
 
+.backtrack-note {
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  margin-bottom: 0.4rem;
+  font-style: italic;
+}
+
 .transfer-label {
   font-size: 0.8rem;
   color: var(--c-accent);
