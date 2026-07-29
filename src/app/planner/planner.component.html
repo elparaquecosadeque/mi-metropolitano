@@ -33,11 +33,10 @@
 
   <!-- Max transfers toggle -->
   <section class="transfer-toggle">
-    <label>Trasbordos máx.</label>
+    <label>Tipo de búsqueda</label>
     <div class="toggle-group">
-      <button [class.active]="maxTransfers() === 0" (click)="maxTransfers.set(0)">Directo</button>
-      <button [class.active]="maxTransfers() === 1" (click)="maxTransfers.set(1)">1 trasbordo</button>
-      <button [class.active]="maxTransfers() === 2" (click)="maxTransfers.set(2)">2 trasbordos</button>
+      <button [class.active]="!withTransfers()" (click)="withTransfers.set(false); filterMode.set('all')">Directo</button>
+      <button [class.active]="withTransfers()" (click)="withTransfers.set(true)">Con trasbordos</button>
     </div>
   </section>
 
@@ -82,16 +81,24 @@
     }
   </section>
 
+  <!-- Filter bar — shown when transfer mode is active and there are results -->
+  @if (withTransfers() && hasTransferResults()) {
+    <div class="filter-bar">
+      <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todos</button>
+      <button [class.active]="filterMode() === 'fastest'" (click)="filterMode.set('fastest')">⚡ El más rápido</button>
+    </div>
+  }
+
   <!-- Results -->
   <section class="results">
     @if (!originId() || !destinationId()) {
       <p class="hint">Selecciona origen y destino para ver opciones.</p>
     } @else if (originId() === destinationId()) {
       <p class="hint">El origen y destino son la misma estación.</p>
-    } @else if (options().length === 0) {
+    } @else if (displayOptions().length === 0) {
       <p class="hint">No se encontraron rutas entre estas estaciones.</p>
     } @else {
-      @for (opt of options(); track opt.legs[0].route.id + opt.type + $index) {
+      @for (opt of displayOptions(); track opt.legs[0].route.id + opt.type + $index) {
         <div class="option-card" [class.unavailable]="!opt.legs[0].available">
 
           @if (opt.type === 'transfer') {

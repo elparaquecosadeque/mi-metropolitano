@@ -40,6 +40,7 @@ export interface RouteLeg {
   available: boolean;
   minutesToClose: number | null;
   minutesToOpen: number | null;
+  stops: number;
 }
 
 export interface Favorite {

@@ -17,13 +17,27 @@ export class RoutingService {
   ): RouteOption[] {
     if (originId === destinationId) return [];
 
-    const results: RouteOption[] = [
-      ...this.findDirect(originId, destinationId, now),
-      ...(maxTransfers >= 1 ? this.findOneTransfer(originId, destinationId, now) : []),
-      ...(maxTransfers >= 2 ? this.findTwoTransfers(originId, destinationId, now) : []),
-    ];
+    const directs = this.findDirect(originId, destinationId, now);
+    const transfers: RouteOption[] = maxTransfers >= 1
+      ? [
+          ...this.findOneTransfer(originId, destinationId, now),
+          ...(maxTransfers >= 2 ? this.findTwoTransfers(originId, destinationId, now) : []),
+        ]
+      : [];
 
-    return results.sort((a, b) => a.score - b.score);
+    // ponytail: filter transfers that backtrack — if a direct exists and the transfer
+    // totals >2× its stops, only keep it when it has an expreso leg (genuinely faster)
+    const minDirectStops = directs.length
+      ? Math.min(...directs.map(o => o.legs[0].stops))
+      : Infinity;
+
+    const filteredTransfers = transfers.filter(o => {
+      const total = o.legs.reduce((s, l) => s + l.stops, 0);
+      if (total <= minDirectStops) return true;
+      return o.legs.some(l => l.route.type === 'expreso') && total <= minDirectStops * 2;
+    });
+
+    return [...directs, ...filteredTransfers].sort((a, b) => a.score - b.score);
   }
 
   // ── Direct ──────────────────────────────────────────────────────────────────
@@ -176,7 +190,7 @@ export class RoutingService {
     const minutesToClose = this.schedule.minutesToClose(route, now);
     const minutesToOpen = this.schedule.minutesToOpen(route, now);
 
-    return { route, boardingStation: boarding, alightingStation: alighting, available, minutesToClose, minutesToOpen };
+    return { route, boardingStation: boarding, alightingStation: alighting, available, minutesToClose, minutesToOpen, stops: Math.abs(di - oi) };
   }
 }
 

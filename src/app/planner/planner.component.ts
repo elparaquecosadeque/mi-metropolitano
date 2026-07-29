@@ -31,7 +31,8 @@ export class PlannerComponent implements OnDestroy {
   isManualTime = signal(false);
   datetimeInputValue = toDatetimeLocal(new Date());
   isLight = signal(localStorage.getItem(THEME_KEY) === 'light');
-  maxTransfers = signal<0 | 1 | 2>(1);
+  withTransfers = signal(true);
+  filterMode = signal<'all' | 'fastest'>('all');
   favorites = signal<Favorite[]>(this.loadFavorites());
 
   private ticker = setInterval(() => {
@@ -42,8 +43,20 @@ export class PlannerComponent implements OnDestroy {
     const o = this.originId();
     const d = this.destinationId();
     if (!o || !d || o === d) return [];
-    return this.routing.findOptions(o, d, this.now(), this.maxTransfers());
+    return this.routing.findOptions(o, d, this.now(), this.withTransfers() ? 2 : 0);
   });
+
+  readonly displayOptions = computed<RouteOption[]>(() => {
+    const opts = this.options();
+    if (this.filterMode() === 'fastest') {
+      return opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
+    }
+    return opts;
+  });
+
+  readonly hasTransferResults = computed(() =>
+    this.options().some(o => o.type === 'transfer')
+  );
 
   constructor(private routing: RoutingService) {
     // Apply saved theme on load
