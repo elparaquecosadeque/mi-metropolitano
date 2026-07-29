@@ -48,10 +48,15 @@ export class PlannerComponent implements OnDestroy {
     return this.routing.findOptions(o, d, this.now(), this.withTransfers() ? 2 : 0);
   });
 
+  readonly hasEspresoOptions = computed(() =>
+    this.options().some(o => o.legs.some(l => l.route.type === 'expreso'))
+  );
+
   readonly displayOptions = computed<RouteOption[]>(() => {
     const opts = this.options();
     if (this.filterMode() === 'fastest') {
-      return opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
+      const fastest = opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
+      return fastest.length > 0 ? fastest : opts;
     }
     return opts;
   });

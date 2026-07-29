@@ -168,7 +168,7 @@
       "name": "Expreso 5",
       "type": "expreso",
       "color": "#c0392b",
-      "bidirectional": false,
+      "bidirectional": true,
       "stations": [
         "naranjal", "izaguirre", "tomas-valle", "uni", "caqueta",
         "espana", "estacion-central", "canada", "javier-prado",

@@ -80,8 +80,8 @@
     }
   </section>
 
-  <!-- Filter bar — shown when transfer mode is active and there are results -->
-  @if (withTransfers() && hasTransferResults()) {
+  <!-- Filter bar — shown when transfer mode is active and there are expreso-based options -->
+  @if (withTransfers() && hasTransferResults() && hasEspresoOptions()) {
     <div class="filter-bar">
       <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todos</button>
       <button [class.active]="filterMode() === 'fastest'" (click)="filterMode.set('fastest')">⚡ El más rápido</button>

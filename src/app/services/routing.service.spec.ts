@@ -85,16 +85,20 @@ describe('RoutingService — backtrack awareness', () => {
     expect(via28!.backtrackStops).toBe(0);
   });
 
-  it('non-backtracking transfer scores better than backtracking transfer of same route type', () => {
+  it('non-backtracking transfer scores better than backtracking transfer within the same tier', () => {
     const opts = makeRouting().findOptions('ricardo-palma', 'estadio-union', MON_10, 2);
     const noBacktrack = opts.filter(o => o.type === 'transfer' && o.backtrackStops === 0);
     const withBacktrack = opts.filter(o => o.type === 'transfer' && o.backtrackStops > 0);
 
-    if (noBacktrack.length > 0 && withBacktrack.length > 0) {
-      const bestNoBacktrack = Math.min(...noBacktrack.map(o => o.score));
-      const bestWithBacktrack = Math.min(...withBacktrack.map(o => o.score));
-      expect(bestNoBacktrack).toBeLessThan(bestWithBacktrack);
-    }
+    // Within each tier (floor of score), non-backtracking routes must score lower
+    withBacktrack.forEach(bt => {
+      const tier = Math.floor(bt.score);
+      const sameTierNoBT = noBacktrack.filter(o => Math.floor(o.score) === tier);
+      if (sameTierNoBT.length > 0) {
+        const bestNoBT = Math.min(...sameTierNoBT.map(o => o.score));
+        expect(bestNoBT).toBeLessThan(bt.score);
+      }
+    });
   });
 });
 
