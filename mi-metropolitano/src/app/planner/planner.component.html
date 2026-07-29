@@ -2,6 +2,9 @@
   <header>
     <h1>🚌 Metropolitano</h1>
     <span class="time">{{ formatTime(now()) }}</span>
+    <button class="theme-btn" (click)="toggleTheme()" [title]="isLight() ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'">
+      {{ isLight() ? '🌙' : '☀️' }}
+    </button>
   </header>
 
   <!-- Planning time banner (shown when using manual time) -->
@@ -25,6 +28,16 @@
       @if (isManualTime()) {
         <button class="now-btn" (click)="resetToNow()" title="Volver a hora actual">⏱ Ahora</button>
       }
+    </div>
+  </section>
+
+  <!-- Max transfers toggle -->
+  <section class="transfer-toggle">
+    <label>Trasbordos máx.</label>
+    <div class="toggle-group">
+      <button [class.active]="maxTransfers() === 0" (click)="maxTransfers.set(0)">Directo</button>
+      <button [class.active]="maxTransfers() === 1" (click)="maxTransfers.set(1)">1 trasbordo</button>
+      <button [class.active]="maxTransfers() === 2" (click)="maxTransfers.set(2)">2 trasbordos</button>
     </div>
   </section>
 
@@ -82,7 +95,7 @@
         <div class="option-card" [class.unavailable]="!opt.legs[0].available">
 
           @if (opt.type === 'transfer') {
-            <div class="transfer-label">🔄 Trasbordo en Estación Central</div>
+            <div class="transfer-label">🔄 {{ opt.legs.length - 1 }} trasbordo{{ opt.legs.length > 2 ? 's' : '' }}</div>
           }
 
           @for (leg of opt.legs; track leg.route.id; let last = $last) {
@@ -123,7 +136,7 @@
             </div>
 
             @if (!last) {
-              <div class="transfer-divider">↓ trasbordar en <strong>Estación Central</strong></div>
+              <div class="transfer-divider">↓ trasbordar en <strong>{{ leg.alightingStation.name }}</strong></div>
             }
           }
         </div>

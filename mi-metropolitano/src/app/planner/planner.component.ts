@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnDestroy } from '@angular/core';
+import { Component, signal, computed, OnDestroy, inject, DOCUMENT } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RoutingService } from '../services/routing.service';
@@ -6,6 +6,7 @@ import { RouteOption, Favorite, RouteLeg } from '../models/route.model';
 import { STATIONS } from '../data/routes';
 
 const FAVORITES_KEY = 'metro_favorites';
+const THEME_KEY = 'metro_theme';
 const THRESHOLD = 30;
 
 function toDatetimeLocal(d: Date): string {
@@ -21,6 +22,7 @@ function toDatetimeLocal(d: Date): string {
   styleUrl: './planner.component.scss',
 })
 export class PlannerComponent implements OnDestroy {
+  private doc = inject(DOCUMENT);
   readonly stations = STATIONS;
 
   originId = signal('');
@@ -28,6 +30,8 @@ export class PlannerComponent implements OnDestroy {
   now = signal(new Date());
   isManualTime = signal(false);
   datetimeInputValue = toDatetimeLocal(new Date());
+  isLight = signal(localStorage.getItem(THEME_KEY) === 'light');
+  maxTransfers = signal<0 | 1 | 2>(1);
   favorites = signal<Favorite[]>(this.loadFavorites());
 
   private ticker = setInterval(() => {
@@ -38,10 +42,20 @@ export class PlannerComponent implements OnDestroy {
     const o = this.originId();
     const d = this.destinationId();
     if (!o || !d || o === d) return [];
-    return this.routing.findOptions(o, d, this.now());
+    return this.routing.findOptions(o, d, this.now(), this.maxTransfers());
   });
 
-  constructor(private routing: RoutingService) {}
+  constructor(private routing: RoutingService) {
+    // Apply saved theme on load
+    if (this.isLight()) this.doc.body.classList.add('light');
+  }
+
+  toggleTheme() {
+    const next = !this.isLight();
+    this.isLight.set(next);
+    this.doc.body.classList.toggle('light', next);
+    localStorage.setItem(THEME_KEY, next ? 'light' : 'dark');
+  }
 
   ngOnDestroy() {
     clearInterval(this.ticker);
