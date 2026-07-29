@@ -42,6 +42,7 @@ export interface RouteLeg {
   minutesToClose: number | null;
   minutesToOpen: number | null;
   stops: number;
+  direction: string; // terminal station name in the direction of travel (e.g. "Matellini")
 }
 
 export interface Favorite {

@@ -1,9 +1,10 @@
-import { Component, signal, computed, OnDestroy, inject, DOCUMENT } from '@angular/core';
+import { Component, signal, computed, effect, OnDestroy, inject, DOCUMENT } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg } from '../models/route.model';
 import { STATIONS } from '../data/routes';
+import { StationPickerComponent } from './station-picker.component';
 
 const FAVORITES_KEY = 'metro_favorites';
 const THEME_KEY = 'metro_theme';
@@ -17,7 +18,7 @@ function toDatetimeLocal(d: Date): string {
 @Component({
   selector: 'app-planner',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, StationPickerComponent],
   templateUrl: './planner.component.html',
   styleUrl: './planner.component.scss',
 })
@@ -34,6 +35,7 @@ export class PlannerComponent implements OnDestroy {
   withTransfers = signal(true);
   filterMode = signal<'all' | 'fastest'>('all');
   favorites = signal<Favorite[]>(this.loadFavorites());
+  copied = signal(false);
 
   private ticker = setInterval(() => {
     if (!this.isManualTime()) this.now.set(new Date());
@@ -59,8 +61,30 @@ export class PlannerComponent implements OnDestroy {
   );
 
   constructor(private routing: RoutingService) {
-    // Apply saved theme on load
     if (this.isLight()) this.doc.body.classList.add('light');
+
+    // Pre-select stations from URL query params
+    const validIds = new Set(STATIONS.map(s => s.id));
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get('from') ?? '';
+    const to = params.get('to') ?? '';
+    if (from && validIds.has(from)) this.originId.set(from);
+    if (to && validIds.has(to)) this.destinationId.set(to);
+
+    // Keep URL in sync with selected stations
+    effect(() => {
+      const f = this.originId();
+      const t = this.destinationId();
+      const search = f && t ? `?from=${f}&to=${t}` : '';
+      history.replaceState(null, '', window.location.pathname + search);
+    });
+  }
+
+  copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    });
   }
 
   toggleTheme() {

@@ -224,9 +224,9 @@ export class RoutingService {
 
     if (oi === -1 || di === -1 || oi === di) return null;
 
-    const forward = oi < di;
+    const goingForward = oi < di;
     const backward = route.bidirectional && oi > di;
-    if (!forward && !backward) return null;
+    if (!goingForward && !backward) return null;
 
     const boarding = STATION_MAP.get(originId);
     const alighting = STATION_MAP.get(destinationId);
@@ -236,7 +236,10 @@ export class RoutingService {
     const minutesToClose = this.schedule.minutesToClose(route, now);
     const minutesToOpen = this.schedule.minutesToOpen(route, now);
 
-    return { route, boardingStation: boarding, alightingStation: alighting, available, minutesToClose, minutesToOpen, stops: Math.abs(di - oi) };
+    const terminalId = goingForward ? stations[stations.length - 1] : stations[0];
+    const direction = STATION_MAP.get(terminalId)?.name ?? terminalId;
+
+    return { route, boardingStation: boarding, alightingStation: alighting, available, minutesToClose, minutesToOpen, stops: Math.abs(di - oi), direction };
   }
 }
 

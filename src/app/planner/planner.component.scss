@@ -210,10 +210,23 @@ header {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
   cursor: pointer;
-  margin-top: 0.5rem;
-  width: 100%;
+  flex: 1;
 
   &:hover { background: var(--c-accent); color: var(--c-bg); }
+}
+
+.share-btn {
+  background: transparent;
+  border: 1px solid var(--c-primary);
+  color: var(--c-primary);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex: 1;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: var(--c-primary); color: #fff; }
 }
 
 // ── Inputs ────────────────────────────────────────────────────────────────────
@@ -225,34 +238,10 @@ header {
   border: 1px solid var(--c-border);
 }
 
-.input-row {
+.inputs-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.75rem;
-
-  label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--c-text-muted);
-  }
-
-  select {
-    background: var(--c-surface-2);
-    color: var(--c-text);
-    border: 1px solid var(--c-primary);
-    border-radius: 8px;
-    padding: 0.6rem 0.8rem;
-    font-size: 1rem;   // kept at 1rem — prevents iOS auto-zoom
-    appearance: auto;
-    cursor: pointer;
-    width: 100%;
-
-    &:focus { outline: 2px solid var(--c-primary); }
-
-    option { background: var(--c-surface-2); color: var(--c-text); }
-  }
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .swap-btn {
@@ -339,6 +328,19 @@ header {
   gap: 0.5rem;
 }
 
+.leg-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stop-count {
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
 .route-badge {
   display: inline-flex;
   align-items: center;
@@ -389,6 +391,11 @@ header {
   color: var(--c-accent);
   font-size: 0.85rem;
   margin: 0.5rem 0;
+
+  .direction-hint {
+    color: var(--c-text-muted);
+    font-size: 0.8rem;
+  }
 }
 
 // ── Responsive tweaks ─────────────────────────────────────────────────────────

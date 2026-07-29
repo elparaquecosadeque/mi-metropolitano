@@ -54,30 +54,29 @@
 
   <!-- Station selectors -->
   <section class="inputs">
-    <div class="input-row">
-      <label for="origin">Desde</label>
-      <select id="origin" [ngModel]="originId()" (ngModelChange)="originId.set($event)">
-        <option value="">— selecciona estación —</option>
-        @for (s of stations; track s.id) {
-          <option [value]="s.id">{{ s.name }}</option>
-        }
-      </select>
-    </div>
+    <app-station-picker
+      label="Desde"
+      [stations]="stations"
+      [selectedId]="originId()"
+      (stationChange)="originId.set($event)"
+    />
 
     <button class="swap-btn" (click)="swap()" title="Intercambiar origen y destino">⇅</button>
 
-    <div class="input-row">
-      <label for="destination">Hasta</label>
-      <select id="destination" [ngModel]="destinationId()" (ngModelChange)="destinationId.set($event)">
-        <option value="">— selecciona estación —</option>
-        @for (s of stations; track s.id) {
-          <option [value]="s.id">{{ s.name }}</option>
-        }
-      </select>
-    </div>
+    <app-station-picker
+      label="Hasta"
+      [stations]="stations"
+      [selectedId]="destinationId()"
+      (stationChange)="destinationId.set($event)"
+    />
 
     @if (originId() && destinationId() && originId() !== destinationId()) {
-      <button class="save-fav-btn" (click)="saveFavorite()" title="Guardar como favorito">⭐ Guardar</button>
+      <div class="inputs-actions">
+        <button class="save-fav-btn" (click)="saveFavorite()" title="Guardar como favorito">⭐ Guardar</button>
+        <button class="share-btn" (click)="copyLink()">
+          {{ copied() ? '✓ Copiado' : '🔗 Copiar enlace' }}
+        </button>
+      </div>
     }
   </section>
 
@@ -110,11 +109,14 @@
             }
           }
 
-          @for (leg of opt.legs; track leg.route.id; let last = $last) {
+          @for (leg of opt.legs; track leg.route.id; let last = $last; let i = $index) {
             <div class="leg">
-              <div class="route-badge" [style.background]="leg.route.color">
-                {{ leg.route.name }}
-                <span class="route-type">{{ leg.route.type }}</span>
+              <div class="leg-header">
+                <div class="route-badge" [style.background]="leg.route.color">
+                  {{ leg.route.name }}
+                  <span class="route-type">{{ leg.route.type }}</span>
+                </div>
+                <span class="stop-count">{{ leg.stops }} parada{{ leg.stops !== 1 ? 's' : '' }}</span>
               </div>
 
               <div class="stations">
@@ -148,7 +150,10 @@
             </div>
 
             @if (!last) {
-              <div class="transfer-divider">↓ trasbordar en <strong>{{ leg.alightingStation.name }}</strong></div>
+              <div class="transfer-divider">
+                ↓ trasbordar en <strong>{{ leg.alightingStation.name }}</strong>
+                <span class="direction-hint">· toma <strong>{{ opt.legs[i + 1].route.name }}</strong> dirección <em>{{ opt.legs[i + 1].direction }}</em></span>
+              </div>
             }
           }
         </div>
