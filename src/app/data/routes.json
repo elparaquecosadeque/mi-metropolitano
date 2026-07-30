@@ -991,35 +991,6 @@
       ]
     },
     {
-      "id": "super-expreso-norte",
-      "name": "Súper Expreso Norte",
-      "type": "expreso",
-      "color": "#c0392b",
-      "bidirectional": false,
-      "stations": [
-        "naranjal",
-        "2-de-mayo",
-        "quilca",
-        "estacion-central"
-      ],
-      "schedules": [
-        {
-          "days": [
-            "lv"
-          ],
-          "start": "05:00",
-          "end": "10:00"
-        },
-        {
-          "days": [
-            "lv"
-          ],
-          "start": "16:30",
-          "end": "20:30"
-        }
-      ]
-    },
-    {
       "id": "super-expreso-norte-comas",
       "name": "Súper Expreso Norte (Comas)",
       "type": "expreso",

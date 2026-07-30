@@ -87,10 +87,11 @@ describe('RoutingService — backtrack awareness', () => {
 
   it('non-backtracking transfer scores better than backtracking transfer within the same tier', () => {
     const opts = makeRouting().findOptions('ricardo-palma', 'estadio-union', MON_10, 2);
-    const noBacktrack = opts.filter(o => o.type === 'transfer' && o.backtrackStops === 0);
-    const withBacktrack = opts.filter(o => o.type === 'transfer' && o.backtrackStops > 0);
+    // Only available transfers get the backtrack penalty — unavailable ones all score 8 flat
+    const available = opts.filter(o => o.type === 'transfer' && o.legs.every(l => l.available));
+    const noBacktrack = available.filter(o => o.backtrackStops === 0);
+    const withBacktrack = available.filter(o => o.backtrackStops > 0);
 
-    // Within each tier (floor of score), non-backtracking routes must score lower
     withBacktrack.forEach(bt => {
       const tier = Math.floor(bt.score);
       const sameTierNoBT = noBacktrack.filter(o => Math.floor(o.score) === tier);
