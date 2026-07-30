@@ -97,7 +97,7 @@
     } @else if (displayOptions().length === 0) {
       <p class="hint">No se encontraron rutas entre estas estaciones.</p>
     } @else {
-      @for (opt of displayOptions(); track opt.legs.map(l => l.route.id).join('+')) {
+      @for (opt of displayOptions(); track trackOption(opt)) {
         <div class="option-card" [class.unavailable]="!opt.legs[0].available" [class.starred]="isStarred(opt)">
           <button class="star-btn" (click)="toggleStar(opt)" [title]="isStarred(opt) ? 'Quitar prioridad' : 'Priorizar esta ruta'">
             {{ isStarred(opt) ? '⭐' : '☆' }}

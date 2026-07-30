@@ -182,6 +182,10 @@ export class PlannerComponent implements OnDestroy {
     return date.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
   }
 
+  trackOption(opt: RouteOption): string {
+    return opt.legs.map(l => l.route.id).join('+');
+  }
+
   optionKey(opt: RouteOption, origin: string, dest: string): string {
     return `${origin}|${dest}|${opt.legs.map(l => l.route.id).join('+')}`;
   }
