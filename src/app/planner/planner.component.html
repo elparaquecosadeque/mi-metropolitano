@@ -98,7 +98,10 @@
       <p class="hint">No se encontraron rutas entre estas estaciones.</p>
     } @else {
       @for (opt of displayOptions(); track opt.legs[0].route.id + opt.type + $index) {
-        <div class="option-card" [class.unavailable]="!opt.legs[0].available">
+        <div class="option-card" [class.unavailable]="!opt.legs[0].available" [class.starred]="isStarred(opt)">
+          <button class="star-btn" (click)="toggleStar(opt)" [title]="isStarred(opt) ? 'Quitar prioridad' : 'Priorizar esta ruta'">
+            {{ isStarred(opt) ? '⭐' : '☆' }}
+          </button>
 
           @if (opt.type === 'transfer') {
             <div class="transfer-label">🔄 {{ opt.legs.length - 1 }} trasbordo{{ opt.legs.length > 2 ? 's' : '' }}</div>

@@ -7,6 +7,7 @@ import { STATIONS } from '../data/routes';
 import { StationPickerComponent } from './station-picker.component';
 
 const FAVORITES_KEY = 'metro_favorites';
+const STARRED_KEY = 'metro_starred';
 const THEME_KEY = 'metro_theme';
 const THRESHOLD = 30;
 
@@ -36,6 +37,7 @@ export class PlannerComponent implements OnDestroy {
   filterMode = signal<'all' | 'fastest'>('all');
   favorites = signal<Favorite[]>(this.loadFavorites());
   copied = signal(false);
+  starredKeys = signal<Set<string>>(this.loadStarred());
 
   private ticker = setInterval(() => {
     if (!this.isManualTime()) this.now.set(new Date());
@@ -54,11 +56,22 @@ export class PlannerComponent implements OnDestroy {
 
   readonly displayOptions = computed<RouteOption[]>(() => {
     const opts = this.options();
+    const starred = this.starredKeys();
+    const o = this.originId();
+    const d = this.destinationId();
+
+    let filtered = opts;
     if (this.filterMode() === 'fastest') {
       const fastest = opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
-      return fastest.length > 0 ? fastest : opts;
+      filtered = fastest.length > 0 ? fastest : opts;
     }
-    return opts;
+
+    // Starred options float to the top; stable sort preserves score ordering within each group
+    return [...filtered].sort((a, b) => {
+      const aS = starred.has(this.optionKey(a, o, d)) ? 0 : 1;
+      const bS = starred.has(this.optionKey(b, o, d)) ? 0 : 1;
+      return aS - bS;
+    });
   });
 
   readonly hasTransferResults = computed(() =>
@@ -167,6 +180,30 @@ export class PlannerComponent implements OnDestroy {
 
   formatDate(date: Date): string {
     return date.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
+  }
+
+  optionKey(opt: RouteOption, origin: string, dest: string): string {
+    return `${origin}|${dest}|${opt.legs.map(l => l.route.id).join('+')}`;
+  }
+
+  isStarred(opt: RouteOption): boolean {
+    return this.starredKeys().has(this.optionKey(opt, this.originId(), this.destinationId()));
+  }
+
+  toggleStar(opt: RouteOption) {
+    const key = this.optionKey(opt, this.originId(), this.destinationId());
+    const next = new Set(this.starredKeys());
+    next.has(key) ? next.delete(key) : next.add(key);
+    this.starredKeys.set(next);
+    localStorage.setItem(STARRED_KEY, JSON.stringify([...next]));
+  }
+
+  private loadStarred(): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(STARRED_KEY) ?? '[]'));
+    } catch {
+      return new Set();
+    }
   }
 
   private loadFavorites(): Favorite[] {
