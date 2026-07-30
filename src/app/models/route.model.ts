@@ -18,6 +18,11 @@ export interface Route {
    * Stored north-to-south for bidirectional; for unidirectional, in actual travel order.
    */
   stations: string[];
+  /**
+   * Optional: stops in south-to-north travel order, when northbound stops differ from reversing `stations`.
+   * Only meaningful when bidirectional: true. If absent, northbound uses `stations` reversed.
+   */
+  stationsNorthbound?: string[];
   schedules: Schedule[];
   bidirectional: boolean;
 }

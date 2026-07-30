@@ -13,7 +13,9 @@ const NO_TRANSFER = new Set(['tacna', 'jiron-union']);
 // All stations that appear on ≥2 routes (valid transfer points), minus split-platform ones
 const stationRouteCount = new Map<string, number>();
 for (const route of ROUTES) {
-  for (const id of route.stations) {
+  // Deduplicate per route: a station appearing in both directions counts once
+  const allStops = new Set([...route.stations, ...(route.stationsNorthbound ?? [])]);
+  for (const id of allStops) {
     stationRouteCount.set(id, (stationRouteCount.get(id) ?? 0) + 1);
   }
 }
@@ -218,24 +220,49 @@ export class RoutingService {
     destinationId: string,
     now: Date
   ): RouteLeg | null {
+    // For bidirectional routes with direction-specific northbound stops, check that array first.
+    // stationsNorthbound is in S→N travel order (first = southernmost, last = northernmost).
+    if (route.bidirectional && route.stationsNorthbound) {
+      const nb = route.stationsNorthbound;
+      const oi = nb.indexOf(originId);
+      const di = nb.indexOf(destinationId);
+      if (oi !== -1 && di !== -1 && oi < di) {
+        // Forward through northbound array = traveling north
+        return this.makeLegFromArray(route, nb, oi, di, now, true);
+      }
+    }
+
+    // Primary stations array (N→S for bidirectional)
     const stations = route.stations;
     const oi = stations.indexOf(originId);
     const di = stations.indexOf(destinationId);
-
     if (oi === -1 || di === -1 || oi === di) return null;
 
-    const goingForward = oi < di;
-    const backward = route.bidirectional && oi > di;
+    const goingForward = oi < di;                        // southbound
+    const backward = route.bidirectional && oi > di;     // northbound (no special stops)
     if (!goingForward && !backward) return null;
 
-    const boarding = STATION_MAP.get(originId);
-    const alighting = STATION_MAP.get(destinationId);
+    // If stationsNorthbound exists, northbound MUST use it — skip reversed primary array
+    if (backward && route.stationsNorthbound) return null;
+
+    return this.makeLegFromArray(route, stations, oi, di, now, goingForward);
+  }
+
+  private makeLegFromArray(
+    route: Route,
+    stations: string[],
+    oi: number,
+    di: number,
+    now: Date,
+    goingForward: boolean
+  ): RouteLeg | null {
+    const boarding = STATION_MAP.get(stations[oi]);
+    const alighting = STATION_MAP.get(stations[di]);
     if (!boarding || !alighting) return null;
 
     const available = this.schedule.isAvailable(route, now);
     const minutesToClose = this.schedule.minutesToClose(route, now);
     const minutesToOpen = this.schedule.minutesToOpen(route, now);
-
     const terminalId = goingForward ? stations[stations.length - 1] : stations[0];
     const direction = STATION_MAP.get(terminalId)?.name ?? terminalId;
 

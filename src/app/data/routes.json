@@ -74,8 +74,8 @@
         "chimpu-ocllo", "los-incas", "andres-belaunde", "22-de-agosto", "las-vegas",
         "universidad", "naranjal", "izaguirre", "pacifico", "independencia",
         "los-jazmines", "tomas-valle", "el-milagro", "honorio-delgado", "uni",
-        "parque-del-trabajo", "caqueta", "ramon-castilla", "tacna", "jiron-union",
-        "colmena", "2-de-mayo", "quilca", "espana", "estacion-central"
+        "parque-del-trabajo", "caqueta", "ramon-castilla", "2-de-mayo",
+        "quilca", "espana", "estacion-central"
       ],
       "schedules": [
         { "days": ["lv"],      "start": "10:00", "end": "23:00" },
