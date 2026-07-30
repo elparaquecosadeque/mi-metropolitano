@@ -1,0 +1,355 @@
+{
+  "stations": [
+    { "id": "chimpu-ocllo",       "name": "Terminal Chimpu Ocllo" },
+    { "id": "los-incas",          "name": "Los Incas" },
+    { "id": "andres-belaunde",    "name": "Andrés Belaunde" },
+    { "id": "22-de-agosto",       "name": "22 de Agosto" },
+    { "id": "las-vegas",          "name": "Las Vegas" },
+    { "id": "universidad",        "name": "Universidad" },
+    { "id": "naranjal",           "name": "Naranjal" },
+    { "id": "izaguirre",          "name": "Izaguirre" },
+    { "id": "pacifico",           "name": "Pacífico" },
+    { "id": "independencia",      "name": "Independencia" },
+    { "id": "los-jazmines",       "name": "Los Jazmines" },
+    { "id": "tomas-valle",        "name": "Tomás Valle" },
+    { "id": "el-milagro",         "name": "El Milagro" },
+    { "id": "honorio-delgado",    "name": "Honorio Delgado" },
+    { "id": "uni",                "name": "UNI" },
+    { "id": "parque-del-trabajo", "name": "Parque del Trabajo" },
+    { "id": "caqueta",            "name": "Caquetá" },
+    { "id": "ramon-castilla",     "name": "Ramón Castilla" },
+    { "id": "tacna",              "name": "Tacna" },
+    { "id": "jiron-union",        "name": "Jiron de la Unión" },
+    { "id": "colmena",            "name": "Colmena" },
+    { "id": "2-de-mayo",          "name": "2 de Mayo" },
+    { "id": "quilca",             "name": "Quilca" },
+    { "id": "espana",             "name": "España" },
+    { "id": "estacion-central",   "name": "Estación Central" },
+    { "id": "estadio-nacional",   "name": "Estadio Nacional" },
+    { "id": "mexico",             "name": "México" },
+    { "id": "canada",             "name": "Canadá" },
+    { "id": "javier-prado",       "name": "Javier Prado" },
+    { "id": "canaval-moreyra",    "name": "Canaval y Moreyra" },
+    { "id": "aramburu",           "name": "Aramburu" },
+    { "id": "domingo-orue",       "name": "Domingo Orué" },
+    { "id": "angamos",            "name": "Angamos" },
+    { "id": "ricardo-palma",      "name": "Ricardo Palma" },
+    { "id": "benavides",          "name": "Benavides" },
+    { "id": "28-de-julio",        "name": "28 de Julio" },
+    { "id": "plaza-de-flores",    "name": "Plaza de Flores" },
+    { "id": "balta",              "name": "Balta" },
+    { "id": "bulevar",            "name": "Bulevar" },
+    { "id": "estadio-union",      "name": "Estadio Unión" },
+    { "id": "escuela-militar",    "name": "Escuela Militar" },
+    { "id": "teran",              "name": "Terán" },
+    { "id": "rosario-de-villa",   "name": "Rosario de Villa" },
+    { "id": "matellini",          "name": "Matellini" }
+  ],
+
+  "routes": [
+    {
+      "id": "ruta-a",
+      "name": "Ruta A",
+      "type": "troncal",
+      "color": "#27ae60",
+      "bidirectional": true,
+      "stations": [
+        "naranjal", "izaguirre", "pacifico", "independencia", "los-jazmines",
+        "tomas-valle", "el-milagro", "honorio-delgado", "uni", "parque-del-trabajo",
+        "caqueta", "ramon-castilla", "tacna", "jiron-union", "colmena",
+        "2-de-mayo", "quilca", "espana", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lunes-sabado"], "start": "05:00", "end": "23:00" },
+        { "days": ["domingo"],      "start": "05:00", "end": "22:00" }
+      ]
+    },
+    {
+      "id": "ruta-b",
+      "name": "Ruta B",
+      "type": "troncal",
+      "color": "#27ae60",
+      "bidirectional": true,
+      "stations": [
+        "chimpu-ocllo", "los-incas", "andres-belaunde", "22-de-agosto", "las-vegas",
+        "universidad", "naranjal", "izaguirre", "pacifico", "independencia",
+        "los-jazmines", "tomas-valle", "el-milagro", "honorio-delgado", "uni",
+        "parque-del-trabajo", "caqueta", "ramon-castilla", "2-de-mayo",
+        "quilca", "espana", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"],      "start": "10:00", "end": "23:00" },
+        { "days": ["sabado"],  "start": "05:00", "end": "23:00" },
+        { "days": ["domingo"], "start": "05:00", "end": "22:00" }
+      ]
+    },
+    {
+      "id": "ruta-c",
+      "name": "Ruta C",
+      "type": "troncal",
+      "color": "#27ae60",
+      "bidirectional": true,
+      "stations": [
+        "ramon-castilla", "tacna", "jiron-union", "colmena", "2-de-mayo",
+        "quilca", "espana", "estacion-central",
+        "estadio-nacional", "mexico", "canada", "javier-prado", "canaval-moreyra",
+        "aramburu", "domingo-orue", "angamos", "ricardo-palma", "benavides",
+        "28-de-julio", "plaza-de-flores", "balta", "bulevar", "estadio-union",
+        "escuela-militar", "teran", "rosario-de-villa", "matellini"
+      ],
+      "schedules": [
+        { "days": ["lunes-sabado"], "start": "05:00", "end": "23:00" },
+        { "days": ["domingo"],      "start": "05:00", "end": "22:00" }
+      ]
+    },
+    {
+      "id": "ruta-d",
+      "name": "Ruta D",
+      "type": "troncal",
+      "color": "#27ae60",
+      "bidirectional": true,
+      "stations": [
+        "naranjal", "izaguirre", "pacifico", "independencia", "los-jazmines",
+        "tomas-valle", "el-milagro", "honorio-delgado", "uni", "parque-del-trabajo",
+        "caqueta", "ramon-castilla", "tacna", "jiron-union", "colmena",
+        "2-de-mayo", "quilca", "espana", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:00", "end": "10:30" }
+      ]
+    },
+
+    {
+      "id": "expreso-1",
+      "name": "Expreso 1",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": true,
+      "stations": [
+        "estacion-central", "estadio-nacional", "javier-prado", "canaval-moreyra",
+        "angamos", "28-de-julio", "balta", "estadio-union", "teran", "matellini"
+      ],
+      "schedules": [
+        { "days": ["lv"],             "start": "05:30", "end": "22:30" },
+        { "days": ["sabado","domingo"],"start": "06:30", "end": "22:30" }
+      ]
+    },
+    {
+      "id": "expreso-2",
+      "name": "Expreso 2",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "naranjal", "canada", "javier-prado", "ricardo-palma", "28-de-julio"
+      ],
+      "schedules": [
+        { "days": ["lv"],     "start": "05:00", "end": "09:00" },
+        { "days": ["sabado"], "start": "06:00", "end": "09:00" }
+      ]
+    },
+    {
+      "id": "expreso-3",
+      "name": "Expreso 3",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "benavides", "28-de-julio", "canada", "javier-prado", "canaval-moreyra",
+        "estadio-nacional", "estacion-central", "uni", "tomas-valle", "izaguirre", "naranjal"
+      ],
+      "schedules": [
+        { "days": ["lv"],     "start": "17:00", "end": "21:00" },
+        { "days": ["sabado"], "start": "12:30", "end": "15:30" }
+      ]
+    },
+    {
+      "id": "expreso-5",
+      "name": "Expreso 5",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": true,
+      "stations": [
+        "naranjal", "izaguirre", "tomas-valle", "uni", "caqueta",
+        "espana", "estacion-central", "canada", "javier-prado",
+        "canaval-moreyra", "angamos", "ricardo-palma", "plaza-de-flores"
+      ],
+      "schedules": [
+        { "days": ["lv"],     "start": "09:00", "end": "17:00" },
+        { "days": ["sabado"], "start": "05:15", "end": "20:20" }
+      ]
+    },
+    {
+      "id": "expreso-6",
+      "name": "Expreso 6",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "izaguirre", "independencia", "estacion-central",
+        "javier-prado", "canaval-moreyra", "angamos", "benavides"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:30", "end": "10:00" }
+      ]
+    },
+    {
+      "id": "expreso-7",
+      "name": "Expreso 7",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "tomas-valle", "el-milagro", "honorio-delgado", "uni", "parque-del-trabajo",
+        "caqueta", "ramon-castilla", "tacna", "jiron-union", "quilca", "colmena",
+        "estacion-central", "canada", "javier-prado", "canaval-moreyra", "angamos"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:30", "end": "09:00" }
+      ]
+    },
+    {
+      "id": "expreso-8",
+      "name": "Expreso 8",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": true,
+      "stations": [
+        "izaguirre", "independencia", "tomas-valle", "uni", "parque-del-trabajo",
+        "caqueta", "estacion-central", "canada", "javier-prado", "canaval-moreyra",
+        "angamos", "benavides", "28-de-julio", "plaza-de-flores"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "17:00", "end": "20:20" }
+      ]
+    },
+    {
+      "id": "expreso-9",
+      "name": "Expreso 9",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "uni", "parque-del-trabajo", "caqueta", "ramon-castilla", "tacna",
+        "estacion-central", "javier-prado", "canaval-moreyra",
+        "angamos", "benavides", "28-de-julio", "plaza-de-flores"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:30", "end": "09:00" }
+      ]
+    },
+    {
+      "id": "expreso-10",
+      "name": "Expreso 10",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "naranjal", "caqueta", "ramon-castilla", "tacna",
+        "jiron-union", "colmena", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "06:00", "end": "09:00" }
+      ]
+    },
+    {
+      "id": "expreso-11",
+      "name": "Expreso 11",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": true,
+      "stations": [
+        "los-incas", "andres-belaunde", "22-de-agosto", "las-vegas",
+        "universidad", "naranjal", "pacifico", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:00", "end": "10:00" }
+      ]
+    },
+    {
+      "id": "expreso-12",
+      "name": "Expreso 12",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "estacion-central", "mexico", "canada", "javier-prado",
+        "canaval-moreyra", "aramburu", "angamos", "benavides"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:45", "end": "10:00" }
+      ]
+    },
+    {
+      "id": "expreso-13",
+      "name": "Expreso 13",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "chimpu-ocllo", "los-incas", "andres-belaunde", "uni", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:00", "end": "10:00" }
+      ]
+    },
+    {
+      "id": "super-expreso",
+      "name": "Súper Expreso",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": true,
+      "stations": [
+        "naranjal", "canaval-moreyra", "aramburu", "angamos", "benavides", "28-de-julio"
+      ],
+      "schedules": [
+        { "days": ["lv"],     "start": "05:30", "end": "09:00" },
+        { "days": ["lv"],     "start": "17:00", "end": "21:00" },
+        { "days": ["sabado"], "start": "06:00", "end": "09:00" }
+      ]
+    },
+    {
+      "id": "super-expreso-norte",
+      "name": "Súper Expreso Norte",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "naranjal", "2-de-mayo", "quilca", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "05:00", "end": "10:00" },
+        { "days": ["lv"], "start": "16:30", "end": "20:30" }
+      ]
+    },
+    {
+      "id": "super-expreso-norte-comas",
+      "name": "Súper Expreso Norte (Comas)",
+      "type": "expreso",
+      "color": "#c0392b",
+      "bidirectional": false,
+      "stations": [
+        "22-de-agosto", "las-vegas", "universidad", "naranjal", "estacion-central"
+      ],
+      "schedules": [
+        { "days": ["lv"], "start": "06:00", "end": "08:00" }
+      ]
+    },
+
+    {
+      "id": "lechucero",
+      "name": "Lechucero",
+      "type": "lechucero",
+      "color": "#2c3e50",
+      "bidirectional": true,
+      "stations": [
+        "naranjal", "izaguirre", "tomas-valle", "uni",
+        "estacion-central",
+        "canada", "canaval-moreyra", "aramburu", "angamos", "benavides", "matellini"
+      ],
+      "schedules": [
+        { "days": ["viernesSabado"], "start": "23:30", "end": "04:00" }
+      ]
+    }
+  ]
+}

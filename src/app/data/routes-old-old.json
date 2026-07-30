@@ -406,7 +406,7 @@
       "name": "Expreso 2",
       "type": "expreso",
       "color": "#c0392b",
-      "bidirectional": false,
+      "bidirectional": true,
       "stations": [
         "naranjal",
         "canada",
@@ -435,57 +435,6 @@
         "javier-prado",
         "canada",
         "naranjal"
-      ],
-      "variants": [
-        {
-          "stations": [
-            "naranjal",
-            "canada",
-            "javier-prado",
-            "ricardo-palma",
-            "28-de-julio"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:00",
-              "end": "09:00"
-            },
-            {
-              "days": [
-                "sabado"
-              ],
-              "start": "06:00",
-              "end": "09:00"
-            }
-          ]
-        },
-        {
-          "stations": [
-            "ricardo-palma",
-            "javier-prado",
-            "canada",
-            "naranjal"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "17:00",
-              "end": "21:00"
-            },
-            {
-              "days": [
-                "sabado"
-              ],
-              "start": "12:30",
-              "end": "15:30"
-            }
-          ]
-        }
       ]
     },
     {
@@ -498,50 +447,17 @@
       "schedules": [],
       "variants": [
         {
-          "stations": [
-            "naranjal",
-            "angamos",
-            "benavides",
-            "28-de-julio"
-          ],
+          "stations": ["naranjal", "angamos", "benavides", "28-de-julio"],
           "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:30",
-              "end": "09:00"
-            },
-            {
-              "days": [
-                "sabado"
-              ],
-              "start": "06:00",
-              "end": "09:00"
-            }
+            { "days": ["lv"],     "start": "05:30", "end": "09:00" },
+            { "days": ["sabado"], "start": "06:00", "end": "09:00" }
           ]
         },
         {
-          "stations": [
-            "benavides",
-            "angamos",
-            "naranjal"
-          ],
+          "stations": ["benavides", "angamos", "naranjal"],
           "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "17:00",
-              "end": "21:00"
-            },
-            {
-              "days": [
-                "sabado"
-              ],
-              "start": "12:30",
-              "end": "15:30"
-            }
+            { "days": ["lv"],     "start": "17:00", "end": "21:00" },
+            { "days": ["sabado"], "start": "12:30", "end": "15:30" }
           ]
         }
       ]
@@ -617,7 +533,18 @@
       "bidirectional": false,
       "stations": [
         "tomas-valle",
+        "el-milagro",
+        "honorio-delgado",
+        "uni",
+        "parque-del-trabajo",
+        "caqueta",
+        "ramon-castilla",
+        "tacna",
+        "jiron-union",
+        "quilca",
+        "colmena",
         "estacion-central",
+        "canada",
         "javier-prado",
         "canaval-moreyra",
         "angamos"
@@ -643,11 +570,15 @@
         "independencia",
         "tomas-valle",
         "uni",
+        "parque-del-trabajo",
+        "caqueta",
         "estacion-central",
+        "canada",
         "javier-prado",
         "canaval-moreyra",
         "angamos",
         "benavides",
+        "28-de-julio",
         "plaza-de-flores"
       ],
       "schedules": [
@@ -688,49 +619,6 @@
           "start": "05:30",
           "end": "09:00"
         }
-      ],
-      "variants": [
-        {
-          "stations": [
-            "uni",
-            "caqueta",
-            "canada",
-            "canaval-moreyra",
-            "angamos",
-            "benavides"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:00",
-              "end": "09:00"
-            }
-          ]
-        },
-        {
-          "stations": [
-            "plaza-de-flores",
-            "benavides",
-            "angamos",
-            "canaval-moreyra",
-            "javier-prado",
-            "estacion-central",
-            "espana",
-            "caqueta",
-            "uni"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:00",
-              "end": "09:00"
-            }
-          ]
-        }
       ]
     },
     {
@@ -763,7 +651,7 @@
       "name": "Expreso 11",
       "type": "expreso",
       "color": "#c0392b",
-      "bidirectional": false,
+      "bidirectional": true,
       "stations": [
         "los-incas",
         "andres-belaunde",
@@ -782,48 +670,6 @@
           "start": "05:00",
           "end": "10:00"
         }
-      ],
-      "variants": [
-        {
-          "stations": [
-            "los-incas",
-            "andres-belaunde",
-            "22-de-agosto",
-            "las-vegas",
-            "universidad",
-            "pacifico",
-            "estacion-central"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:00",
-              "end": "10:00"
-            }
-          ]
-        },
-        {
-          "stations": [
-            "estacion-central",
-            "naranjal",
-            "universidad",
-            "las-vegas",
-            "22-de-agosto",
-            "andres-belaunde",
-            "los-incas"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:45",
-              "end": "10:00"
-            }
-          ]
-        }
       ]
     },
     {
@@ -834,9 +680,11 @@
       "bidirectional": false,
       "stations": [
         "estacion-central",
-        "estadio-nacional",
+        "mexico",
+        "canada",
         "javier-prado",
         "canaval-moreyra",
+        "aramburu",
         "angamos",
         "benavides"
       ],
@@ -871,41 +719,6 @@
           "start": "05:00",
           "end": "10:00"
         }
-      ],
-      "variants": [
-        {
-          "stations": [
-            "chimpu-ocllo",
-            "andres-belaunde",
-            "uni",
-            "estacion-central"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:00",
-              "end": "10:00"
-            }
-          ]
-        },
-        {
-          "stations": [
-            "estacion-central",
-            "los-incas",
-            "chimpu-ocllo"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:50",
-              "end": "10:00"
-            }
-          ]
-        }
       ]
     },
     {
@@ -913,7 +726,7 @@
       "name": "Súper Expreso",
       "type": "expreso",
       "color": "#c0392b",
-      "bidirectional": false,
+      "bidirectional": true,
       "stations": [
         "naranjal",
         "canaval-moreyra",
@@ -943,50 +756,6 @@
           ],
           "start": "06:00",
           "end": "09:00"
-        }
-      ],
-      "variants": [
-        {
-          "stations": [
-            "naranjal",
-            "canaval-moreyra",
-            "aramburu",
-            "angamos",
-            "benavides",
-            "28-de-julio"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "05:30",
-              "end": "09:00"
-            },
-            {
-              "days": [
-                "sabado"
-              ],
-              "start": "06:00",
-              "end": "09:00"
-            }
-          ]
-        },
-        {
-          "stations": [
-            "aramburu",
-            "canaval-moreyra",
-            "naranjal"
-          ],
-          "schedules": [
-            {
-              "days": [
-                "lv"
-              ],
-              "start": "17:00",
-              "end": "21:00"
-            }
-          ]
         }
       ]
     },
@@ -1030,9 +799,6 @@
         "las-vegas",
         "universidad",
         "naranjal",
-        "2-de-mayo",
-        "quilca",
-        "espana",
         "estacion-central"
       ],
       "schedules": [
@@ -1041,7 +807,7 @@
             "lv"
           ],
           "start": "06:00",
-          "end": "08:30"
+          "end": "08:00"
         }
       ]
     },
@@ -1056,13 +822,12 @@
         "izaguirre",
         "tomas-valle",
         "uni",
-        "ramon-castilla",
-        "jiron-union",
+        "estacion-central",
         "canada",
+        "canaval-moreyra",
+        "aramburu",
         "angamos",
-        "ricardo-palma",
-        "balta",
-        "bulevar",
+        "benavides",
         "matellini"
       ],
       "schedules": [
