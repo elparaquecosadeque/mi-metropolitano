@@ -54,25 +54,28 @@ export class PlannerComponent implements OnDestroy {
     this.options().some(o => o.legs.some(l => l.route.type === 'expreso'))
   );
 
-  readonly displayOptions = computed<RouteOption[]>(() => {
+  readonly filteredOptions = computed<RouteOption[]>(() => {
     const opts = this.options();
-    const starred = this.starredKeys();
-    const o = this.originId();
-    const d = this.destinationId();
-
-    let filtered = opts;
     if (this.filterMode() === 'fastest') {
       const fastest = opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
-      filtered = fastest.length > 0 ? fastest : opts;
+      return fastest.length > 0 ? fastest : opts;
     }
-
-    // Starred options float to the top; stable sort preserves score ordering within each group
-    return [...filtered].sort((a, b) => {
-      const aS = starred.has(this.optionKey(a, o, d)) ? 0 : 1;
-      const bS = starred.has(this.optionKey(b, o, d)) ? 0 : 1;
-      return aS - bS;
-    });
+    return opts;
   });
+
+  readonly starredOpts = computed<RouteOption[]>(() => {
+    const starred = this.starredKeys();
+    return this.filteredOptions().filter(opt => starred.has(this.optionKey(opt)));
+  });
+
+  readonly unstarredOpts = computed<RouteOption[]>(() => {
+    const starred = this.starredKeys();
+    return this.filteredOptions().filter(opt => !starred.has(this.optionKey(opt)));
+  });
+
+  readonly displayOptions = computed<RouteOption[]>(() =>
+    [...this.starredOpts(), ...this.unstarredOpts()]
+  );
 
   readonly hasTransferResults = computed(() =>
     this.options().some(o => o.type === 'transfer')
@@ -183,19 +186,20 @@ export class PlannerComponent implements OnDestroy {
   }
 
   trackOption(opt: RouteOption): string {
-    return opt.legs.map(l => l.route.id).join('+');
+    return opt.legs.map(l => `${l.route.id}:${l.boardingStation.id}:${l.alightingStation.id}`).join('+');
   }
 
-  optionKey(opt: RouteOption, origin: string, dest: string): string {
-    return `${origin}|${dest}|${opt.legs.map(l => l.route.id).join('+')}`;
+  optionKey(opt: RouteOption): string {
+    // Include boarding station IDs so options via different hubs get distinct star keys
+    return opt.legs.map(l => `${l.route.id}@${l.boardingStation.id}`).join('+');
   }
 
   isStarred(opt: RouteOption): boolean {
-    return this.starredKeys().has(this.optionKey(opt, this.originId(), this.destinationId()));
+    return this.starredKeys().has(this.optionKey(opt));
   }
 
   toggleStar(opt: RouteOption) {
-    const key = this.optionKey(opt, this.originId(), this.destinationId());
+    const key = this.optionKey(opt);
     const next = new Set(this.starredKeys());
     next.has(key) ? next.delete(key) : next.add(key);
     this.starredKeys.set(next);

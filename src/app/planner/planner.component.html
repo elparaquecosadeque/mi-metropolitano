@@ -97,11 +97,9 @@
     } @else if (displayOptions().length === 0) {
       <p class="hint">No se encontraron rutas entre estas estaciones.</p>
     } @else {
-      @for (opt of displayOptions(); track trackOption(opt)) {
-        <div class="option-card" [class.unavailable]="!opt.legs[0].available" [class.starred]="isStarred(opt)">
-          <button class="star-btn" (click)="toggleStar(opt)" [title]="isStarred(opt) ? 'Quitar prioridad' : 'Priorizar esta ruta'">
-            {{ isStarred(opt) ? '⭐' : '☆' }}
-          </button>
+      @for (opt of starredOpts(); track trackOption(opt)) {
+        <div class="option-card starred" [class.unavailable]="!opt.legs[0].available">
+          <button class="star-btn" (click)="toggleStar(opt)" title="Quitar prioridad">⭐</button>
 
           @if (opt.type === 'transfer') {
             <div class="transfer-label">🔄 {{ opt.legs.length - 1 }} trasbordo{{ opt.legs.length > 2 ? 's' : '' }}</div>
@@ -130,17 +128,72 @@
 
               @if (leg.available) {
                 @if (isSoonClose(leg)) {
-                  <div class="chip chip-amber">
-                    ⚠️ Termina en {{ leg.minutesToClose }} min — ¡tómalo ahora!
-                  </div>
+                  <div class="chip chip-amber">⚠️ Termina en {{ leg.minutesToClose }} min — ¡tómalo ahora!</div>
                 } @else {
                   <div class="chip chip-green">✅ Disponible</div>
                 }
               } @else {
                 @if (isSoonOpen(leg)) {
-                  <div class="chip chip-amber">
-                    🕐 Inicia en {{ leg.minutesToOpen }} min
+                  <div class="chip chip-amber">🕐 Inicia en {{ leg.minutesToOpen }} min</div>
+                } @else {
+                  <div class="chip chip-red">
+                    🔴 No disponible
+                    @for (sch of leg.route.schedules; track $index) {
+                      <span class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</span>
+                    }
                   </div>
+                }
+              }
+            </div>
+
+            @if (!last) {
+              <div class="transfer-divider">
+                ↓ trasbordar en <strong>{{ leg.alightingStation.name }}</strong>
+                <span class="direction-hint">· toma <strong>{{ opt.legs[i + 1].route.name }}</strong> dirección <em>{{ opt.legs[i + 1].direction }}</em></span>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      @for (opt of unstarredOpts(); track trackOption(opt)) {
+        <div class="option-card" [class.unavailable]="!opt.legs[0].available">
+          <button class="star-btn" (click)="toggleStar(opt)" title="Priorizar esta ruta">☆</button>
+
+          @if (opt.type === 'transfer') {
+            <div class="transfer-label">🔄 {{ opt.legs.length - 1 }} trasbordo{{ opt.legs.length > 2 ? 's' : '' }}</div>
+            @if (opt.backtrackStops > 0) {
+              <div class="backtrack-note">
+                ↩ Retrocedes {{ opt.backtrackStops }} estación{{ opt.backtrackStops !== 1 ? 'es' : '' }} para conectar
+              </div>
+            }
+          }
+
+          @for (leg of opt.legs; track leg.route.id; let last = $last; let i = $index) {
+            <div class="leg">
+              <div class="leg-header">
+                <div class="route-badge" [style.background]="leg.route.color">
+                  {{ leg.route.name }}
+                  <span class="route-type">{{ leg.route.type }}</span>
+                </div>
+                <span class="stop-count">{{ leg.stops }} parada{{ leg.stops !== 1 ? 's' : '' }}</span>
+              </div>
+
+              <div class="stations">
+                <span class="boarding">📍 {{ leg.boardingStation.name }}</span>
+                <span class="arrow">→</span>
+                <span class="alighting">🏁 {{ leg.alightingStation.name }}</span>
+              </div>
+
+              @if (leg.available) {
+                @if (isSoonClose(leg)) {
+                  <div class="chip chip-amber">⚠️ Termina en {{ leg.minutesToClose }} min — ¡tómalo ahora!</div>
+                } @else {
+                  <div class="chip chip-green">✅ Disponible</div>
+                }
+              } @else {
+                @if (isSoonOpen(leg)) {
+                  <div class="chip chip-amber">🕐 Inicia en {{ leg.minutesToOpen }} min</div>
                 } @else {
                   <div class="chip chip-red">
                     🔴 No disponible
