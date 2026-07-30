@@ -316,14 +316,16 @@ header {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   line-height: 1;
-  padding: .1rem .2rem;
+  padding: .1rem .25rem;
   border-radius: 4px;
-  opacity: .7;
-  transition: opacity .15s, transform .15s;
-  &:hover { opacity: 1; transform: scale(1.2); }
+  color: var(--c-text-muted);
+  transition: color .15s, transform .15s;
+  &:hover { color: #f59e0b; transform: scale(1.2); }
 }
+
+.starred .star-btn { color: #f59e0b; }
 
 .backtrack-note {
   font-size: 0.78rem;
