@@ -7,25 +7,33 @@ import { STATIONS, ROUTES } from '../data/routes';
 import type { Station, DayGroup } from '../models/route.model';
 
 type EditableSchedule = { days: DayGroup[]; start: string; end: string };
+type EditableVariant  = { stations: string[]; schedules: EditableSchedule[] };
 type EditableRoute = {
   id: string; name: string; type: string; color: string;
   bidirectional: boolean;
   stations: string[];
   stationsNorthbound?: string[];
   schedules: EditableSchedule[];
+  variants?: EditableVariant[];
 };
 
 const ALL_DAYS: DayGroup[] = ['lv', 'sabado', 'domingo', 'viernesSabado', 'lunes-sabado'];
 const DAY_LABELS: Record<DayGroup, string> = {
-  'lv': 'L–V', 'sabado': 'Sab', 'domingo': 'Dom', 'viernesSabado': 'V–S', 'lunes-sabado': 'L–S',
+  'lv': 'L-V', 'sabado': 'Sab', 'domingo': 'Dom', 'viernesSabado': 'V-S', 'lunes-sabado': 'L-S',
 };
 
+function cloneSchedules(ss: any[]): EditableSchedule[] {
+  return ss.map(s => ({ ...s, days: [...s.days] }));
+}
 function cloneRoutes(): EditableRoute[] {
   return ROUTES.map(r => ({
     ...r,
     stations: [...r.stations],
     stationsNorthbound: r.stationsNorthbound ? [...r.stationsNorthbound] : undefined,
-    schedules: r.schedules.map(s => ({ ...s, days: [...s.days] })),
+    schedules: cloneSchedules(r.schedules),
+    variants: r.variants
+      ? r.variants.map(v => ({ stations: [...v.stations], schedules: cloneSchedules(v.schedules) }))
+      : undefined,
   }));
 }
 
@@ -48,7 +56,7 @@ function cloneRoutes(): EditableRoute[] {
       <div class="panel">
         <div class="panel-header" (click)="showStations.set(!showStations())">
           <span>Estaciones del sistema ({{ editableStations().length }})</span>
-          <span class="expand-icon">{{ showStations() ? 'v' : '>' }}</span>
+          <span>{{ showStations() ? 'v' : '>' }}</span>
         </div>
         @if (showStations()) {
           <div class="panel-body stations-grid">
@@ -71,10 +79,14 @@ function cloneRoutes(): EditableRoute[] {
               <span class="route-badge" [style.background]="route.color">{{ route.name }}</span>
               <span class="route-type">{{ route.type }}</span>
               <span class="route-meta">
-                {{ route.stations.length }} paradas N-S
-                @if (route.stationsNorthbound) { | {{ route.stationsNorthbound.length }} S-N }
+                @if (route.variants?.length) {
+                  {{ route.variants!.length }} variantes
+                } @else {
+                  {{ route.stations.length }} paradas
+                  @if (route.stationsNorthbound) { | {{ route.stationsNorthbound.length }} S-N }
+                }
               </span>
-              <span class="expand-icon">{{ expanded().has(route.id) ? 'v' : '>' }}</span>
+              <span>{{ expanded().has(route.id) ? 'v' : '>' }}</span>
             </div>
 
             @if (expanded().has(route.id)) {
@@ -93,98 +105,170 @@ function cloneRoutes(): EditableRoute[] {
                   <span class="hint">{{ route.bidirectional ? 'Si' : 'No' }}</span>
                 </div>
 
-                <!-- North-to-south stations -->
-                <div class="section-header">
-                  <span class="section-label">
-                    @if (route.stationsNorthbound) { Norte a Sur } @else { Paradas }
-                    ({{ route.stations.length }})
-                  </span>
-                  @if (route.bidirectional) {
-                    <label class="asymmetric-toggle">
-                      <input type="checkbox" [ngModel]="!!route.stationsNorthbound"
-                        (ngModelChange)="toggleAsymmetric(ri, $event)" />
-                      Paradas distintas por sentido
-                    </label>
-                  }
-                </div>
-                <div class="editable-stations">
-                  @for (stId of route.stations; track $index; let si = $index) {
-                    <div class="station-chip">
-                      <span class="chip-num">{{ si + 1 }}</span>
-                      <span class="chip-name">{{ stationName(stId) }}</span>
-                      <div class="chip-actions">
-                        <button class="btn-icon" [disabled]="si === 0"
-                          (click)="moveStation(ri, 'stations', si, -1)">up</button>
-                        <button class="btn-icon" [disabled]="si === route.stations.length - 1"
-                          (click)="moveStation(ri, 'stations', si, 1)">dn</button>
-                        <button class="btn-icon danger"
-                          (click)="removeStation(ri, 'stations', si)">x</button>
-                      </div>
-                    </div>
-                  }
-                  <div class="add-station-row">
-                    <select (change)="addStation(ri, 'stations', $event)">
-                      <option value="">+ Agregar parada</option>
-                      @for (st of stationsNotIn(route.stations); track st.id) {
-                        <option [value]="st.id">{{ st.name }}</option>
-                      }
-                    </select>
-                  </div>
+                <!-- Variants toggle -->
+                <div class="prop-row">
+                  <label>Variantes</label>
+                  <input type="checkbox" [ngModel]="!!route.variants"
+                    (ngModelChange)="toggleVariants(ri, $event)" />
+                  <span class="hint">Horarios con paradas distintas por franja horaria</span>
                 </div>
 
-                <!-- South-to-north stations (when asymmetric) -->
-                @if (route.stationsNorthbound) {
-                  <div class="section-label">Sur a Norte ({{ route.stationsNorthbound.length }})</div>
+                <!-- VARIANT MODE -->
+                @if (route.variants) {
+                  @for (variant of route.variants; track $index; let vi = $index) {
+                    <div class="variant-card">
+                      <div class="variant-header">
+                        <span class="section-label">Variante {{ vi + 1 }}</span>
+                        <button class="btn-icon danger" (click)="removeVariant(ri, vi)">Eliminar variante</button>
+                      </div>
+
+                      <div class="section-label small">Paradas ({{ variant.stations.length }})</div>
+                      <div class="editable-stations">
+                        @for (stId of variant.stations; track $index; let si = $index) {
+                          <div class="station-chip">
+                            <span class="chip-num">{{ si + 1 }}</span>
+                            <span class="chip-name">{{ stationName(stId) }}</span>
+                            <div class="chip-actions">
+                              <button class="btn-icon" [disabled]="si === 0"
+                                (click)="moveVariantStation(ri, vi, si, -1)">up</button>
+                              <button class="btn-icon" [disabled]="si === variant.stations.length - 1"
+                                (click)="moveVariantStation(ri, vi, si, 1)">dn</button>
+                              <button class="btn-icon danger"
+                                (click)="removeVariantStation(ri, vi, si)">x</button>
+                            </div>
+                          </div>
+                        }
+                        <div class="add-station-row">
+                          <select (change)="addVariantStation(ri, vi, $event)">
+                            <option value="">+ Agregar parada</option>
+                            @for (st of stationsNotIn(variant.stations); track st.id) {
+                              <option [value]="st.id">{{ st.name }}</option>
+                            }
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="section-label small">Horarios</div>
+                      <table class="schedule-table">
+                        <thead><tr>
+                          @for (d of allDays; track d) { <th>{{ dayLabels[d] }}</th> }
+                          <th>Desde</th><th>Hasta</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                          @for (sched of variant.schedules; track $index; let si = $index) {
+                            <tr>
+                              @for (d of allDays; track d) {
+                                <td><input type="checkbox" [ngModel]="sched.days.includes(d)"
+                                  (ngModelChange)="toggleVariantDay(ri, vi, si, d, $event)" /></td>
+                              }
+                              <td><input type="time" [ngModel]="sched.start"
+                                (ngModelChange)="setVariantSchedField(ri, vi, si, 'start', $event)" /></td>
+                              <td><input type="time" [ngModel]="sched.end"
+                                (ngModelChange)="setVariantSchedField(ri, vi, si, 'end', $event)" /></td>
+                              <td><button class="btn-icon danger" (click)="removeVariantSched(ri, vi, si)">x</button></td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                      <button class="btn-add" (click)="addVariantSched(ri, vi)">+ Agregar horario</button>
+                    </div>
+                  }
+                  <button class="btn-add-variant" (click)="addVariant(ri)">+ Agregar variante</button>
+
+                } @else {
+                  <!-- STANDARD MODE: stations + optional asymmetric + schedules -->
+
+                  <div class="section-header">
+                    <span class="section-label">
+                      @if (route.stationsNorthbound) { Norte a Sur } @else { Paradas }
+                      ({{ route.stations.length }})
+                    </span>
+                    @if (route.bidirectional) {
+                      <label class="asymmetric-toggle">
+                        <input type="checkbox" [ngModel]="!!route.stationsNorthbound"
+                          (ngModelChange)="toggleAsymmetric(ri, $event)" />
+                        Paradas distintas por sentido
+                      </label>
+                    }
+                  </div>
                   <div class="editable-stations">
-                    @for (stId of route.stationsNorthbound; track $index; let si = $index) {
+                    @for (stId of route.stations; track $index; let si = $index) {
                       <div class="station-chip">
                         <span class="chip-num">{{ si + 1 }}</span>
                         <span class="chip-name">{{ stationName(stId) }}</span>
                         <div class="chip-actions">
                           <button class="btn-icon" [disabled]="si === 0"
-                            (click)="moveStation(ri, 'stationsNorthbound', si, -1)">up</button>
-                          <button class="btn-icon" [disabled]="si === route.stationsNorthbound!.length - 1"
-                            (click)="moveStation(ri, 'stationsNorthbound', si, 1)">dn</button>
+                            (click)="moveStation(ri, 'stations', si, -1)">up</button>
+                          <button class="btn-icon" [disabled]="si === route.stations.length - 1"
+                            (click)="moveStation(ri, 'stations', si, 1)">dn</button>
                           <button class="btn-icon danger"
-                            (click)="removeStation(ri, 'stationsNorthbound', si)">x</button>
+                            (click)="removeStation(ri, 'stations', si)">x</button>
                         </div>
                       </div>
                     }
                     <div class="add-station-row">
-                      <select (change)="addStation(ri, 'stationsNorthbound', $event)">
+                      <select (change)="addStation(ri, 'stations', $event)">
                         <option value="">+ Agregar parada</option>
-                        @for (st of stationsNotIn(route.stationsNorthbound); track st.id) {
+                        @for (st of stationsNotIn(route.stations); track st.id) {
                           <option [value]="st.id">{{ st.name }}</option>
                         }
                       </select>
                     </div>
                   </div>
+
+                  @if (route.stationsNorthbound) {
+                    <div class="section-label">Sur a Norte ({{ route.stationsNorthbound.length }})</div>
+                    <div class="editable-stations">
+                      @for (stId of route.stationsNorthbound; track $index; let si = $index) {
+                        <div class="station-chip">
+                          <span class="chip-num">{{ si + 1 }}</span>
+                          <span class="chip-name">{{ stationName(stId) }}</span>
+                          <div class="chip-actions">
+                            <button class="btn-icon" [disabled]="si === 0"
+                              (click)="moveStation(ri, 'stationsNorthbound', si, -1)">up</button>
+                            <button class="btn-icon" [disabled]="si === route.stationsNorthbound!.length - 1"
+                              (click)="moveStation(ri, 'stationsNorthbound', si, 1)">dn</button>
+                            <button class="btn-icon danger"
+                              (click)="removeStation(ri, 'stationsNorthbound', si)">x</button>
+                          </div>
+                        </div>
+                      }
+                      <div class="add-station-row">
+                        <select (change)="addStation(ri, 'stationsNorthbound', $event)">
+                          <option value="">+ Agregar parada</option>
+                          @for (st of stationsNotIn(route.stationsNorthbound); track st.id) {
+                            <option [value]="st.id">{{ st.name }}</option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  }
+
+                  <div class="section-label">Horarios</div>
+                  <table class="schedule-table">
+                    <thead><tr>
+                      @for (d of allDays; track d) { <th>{{ dayLabels[d] }}</th> }
+                      <th>Desde</th><th>Hasta</th><th></th>
+                    </tr></thead>
+                    <tbody>
+                      @for (sched of route.schedules; track $index; let si = $index) {
+                        <tr>
+                          @for (d of allDays; track d) {
+                            <td><input type="checkbox" [ngModel]="sched.days.includes(d)"
+                              (ngModelChange)="toggleDay(ri, si, d, $event)" /></td>
+                          }
+                          <td><input type="time" [ngModel]="sched.start"
+                            (ngModelChange)="setSchedField(ri, si, 'start', $event)" /></td>
+                          <td><input type="time" [ngModel]="sched.end"
+                            (ngModelChange)="setSchedField(ri, si, 'end', $event)" /></td>
+                          <td><button class="btn-icon danger" (click)="removeSched(ri, si)">x</button></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                  <button class="btn-add" (click)="addSched(ri)">+ Agregar horario</button>
                 }
 
-                <!-- Schedules -->
-                <div class="section-label">Horarios</div>
-                <table class="schedule-table">
-                  <thead><tr>
-                    @for (d of allDays; track d) { <th>{{ dayLabels[d] }}</th> }
-                    <th>Desde</th><th>Hasta</th><th></th>
-                  </tr></thead>
-                  <tbody>
-                    @for (sched of route.schedules; track $index; let si = $index) {
-                      <tr>
-                        @for (d of allDays; track d) {
-                          <td><input type="checkbox" [ngModel]="sched.days.includes(d)"
-                            (ngModelChange)="toggleDay(ri, si, d, $event)" /></td>
-                        }
-                        <td><input type="time" [ngModel]="sched.start"
-                          (ngModelChange)="setSchedField(ri, si, 'start', $event)" /></td>
-                        <td><input type="time" [ngModel]="sched.end"
-                          (ngModelChange)="setSchedField(ri, si, 'end', $event)" /></td>
-                        <td><button class="btn-icon danger" (click)="removeSched(ri, si)">x</button></td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-                <button class="btn-add" (click)="addSched(ri)">+ Agregar horario</button>
               </div>
             }
           </div>
@@ -210,7 +294,6 @@ function cloneRoutes(): EditableRoute[] {
     .station-row { display: flex; align-items: center; gap: .5rem; }
     .st-id { font-size: .72rem; color: #888; background: #f0f0f0; border-radius: 3px; padding: .1rem .3rem; min-width: 140px; }
     .st-name-input { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .4rem; font-size: .82rem; flex: 1; }
-    .st-name-input:focus { outline: none; border-color: #3498db; }
     .route-list { display: flex; flex-direction: column; gap: .5rem; }
     .route-card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
     .route-header { display: flex; align-items: center; gap: .75rem; padding: .6rem 1rem; cursor: pointer; background: #f8f8f8; user-select: none; }
@@ -218,14 +301,18 @@ function cloneRoutes(): EditableRoute[] {
     .route-badge { color: #fff; padding: .15rem .5rem; border-radius: 4px; font-size: .8rem; font-weight: 600; }
     .route-type { color: #888; font-size: .8rem; text-transform: uppercase; }
     .route-meta { color: #aaa; font-size: .75rem; flex: 1; }
-    .expand-icon { color: #888; font-size: .75rem; }
     .route-body { padding: 1rem; display: flex; flex-direction: column; gap: .75rem; }
     .prop-row { display: flex; align-items: center; gap: .75rem; }
     .prop-row label { min-width: 110px; font-size: .85rem; font-weight: 500; color: #555; }
     .hint { font-size: .8rem; color: #888; }
     .section-header { display: flex; align-items: center; gap: 1rem; }
     .section-label { font-size: .8rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: .04em; }
+    .section-label.small { font-size: .75rem; }
     .asymmetric-toggle { display: flex; align-items: center; gap: .35rem; font-size: .8rem; color: #3498db; cursor: pointer; }
+    .variant-card { border: 1px solid #c8d8f0; border-radius: 6px; padding: .75rem; background: #f5f9ff; display: flex; flex-direction: column; gap: .5rem; }
+    .variant-header { display: flex; align-items: center; justify-content: space-between; }
+    .btn-add-variant { background: #3498db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: .82rem; padding: .35rem .8rem; align-self: flex-start; }
+    .btn-add-variant:hover { background: #2980b9; }
     .editable-stations { border: 1px solid #e8e8e8; border-radius: 6px; padding: .4rem; background: #fafafa; display: flex; flex-direction: column; gap: .15rem; }
     .station-chip { display: flex; align-items: center; gap: .4rem; padding: .15rem .3rem; border-radius: 4px; }
     .station-chip:hover { background: #eef0ff; }
@@ -282,6 +369,7 @@ export class AdminComponent {
     this._routes.update(fn);
   }
 
+  // ── Route basic props ──
   setColor(ri: number, color: string) {
     this.update(rs => rs.map((r, i) => i === ri ? { ...r, color } : r));
   }
@@ -299,6 +387,114 @@ export class AdminComponent {
     }));
   }
 
+  // ── Variants ──
+  toggleVariants(ri: number, checked: boolean) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      if (checked) return { ...r, variants: [{ stations: [], schedules: [{ days: ['lv' as DayGroup], start: '05:00', end: '09:00' }] }] };
+      const { variants, ...rest } = r;
+      return rest as EditableRoute;
+    }));
+  }
+
+  addVariant(ri: number) {
+    this.update(rs => rs.map((r, i) => i !== ri ? r : {
+      ...r, variants: [...(r.variants ?? []), { stations: [], schedules: [{ days: ['lv' as DayGroup], start: '05:00', end: '09:00' }] }]
+    }));
+  }
+
+  removeVariant(ri: number, vi: number) {
+    this.update(rs => rs.map((r, i) => i !== ri ? r : {
+      ...r, variants: (r.variants ?? []).filter((_, j) => j !== vi)
+    }));
+  }
+
+  removeVariantStation(ri: number, vi: number, si: number) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => j !== vi ? v : {
+        ...v, stations: v.stations.filter((_, k) => k !== si)
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  moveVariantStation(ri: number, vi: number, si: number, dir: -1 | 1) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => {
+        if (j !== vi) return v;
+        const arr = [...v.stations];
+        const ti = si + dir;
+        if (ti < 0 || ti >= arr.length) return v;
+        [arr[si], arr[ti]] = [arr[ti], arr[si]];
+        return { ...v, stations: arr };
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  addVariantStation(ri: number, vi: number, event: Event) {
+    const sel = event.target as HTMLSelectElement;
+    const id = sel.value;
+    if (!id) return;
+    sel.value = '';
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => j !== vi ? v : {
+        ...v, stations: [...v.stations, id]
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  toggleVariantDay(ri: number, vi: number, si: number, day: DayGroup, checked: boolean) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => {
+        if (j !== vi) return v;
+        const schedules = v.schedules.map((s, k) => {
+          if (k !== si) return s;
+          const days = checked ? [...s.days, day] : s.days.filter(d => d !== day);
+          return { ...s, days } as EditableSchedule;
+        });
+        return { ...v, schedules };
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  setVariantSchedField(ri: number, vi: number, si: number, field: 'start' | 'end', val: string) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => j !== vi ? v : {
+        ...v, schedules: v.schedules.map((s, k) => k !== si ? s : { ...s, [field]: val })
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  addVariantSched(ri: number, vi: number) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => j !== vi ? v : {
+        ...v, schedules: [...v.schedules, { days: ['lv' as DayGroup], start: '05:00', end: '09:00' }]
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  removeVariantSched(ri: number, vi: number, si: number) {
+    this.update(rs => rs.map((r, i) => {
+      if (i !== ri) return r;
+      const variants = (r.variants ?? []).map((v, j) => j !== vi ? v : {
+        ...v, schedules: v.schedules.filter((_, k) => k !== si)
+      });
+      return { ...r, variants };
+    }));
+  }
+
+  // ── Standard stations ──
   removeStation(ri: number, field: 'stations' | 'stationsNorthbound', si: number) {
     this.update(rs => rs.map((r, i) => {
       if (i !== ri) return r;
@@ -328,6 +524,7 @@ export class AdminComponent {
     }));
   }
 
+  // ── Standard schedules ──
   toggleDay(ri: number, si: number, day: DayGroup, checked: boolean) {
     this.update(rs => rs.map((r, i) => {
       if (i !== ri) return r;
@@ -343,7 +540,7 @@ export class AdminComponent {
   setSchedField(ri: number, si: number, field: 'start' | 'end', val: string) {
     this.update(rs => rs.map((r, i) => {
       if (i !== ri) return r;
-      return { ...r, schedules: r.schedules.map((s, j) => j === si ? { ...s, [field]: val } : s) };
+      return { ...r, schedules: r.schedules.map((s, j) => j !== si ? s : { ...s, [field]: val }) };
     }));
   }
 
@@ -359,6 +556,7 @@ export class AdminComponent {
     }));
   }
 
+  // ── Export ──
   download() {
     const payload = { stations: this._stations(), routes: this._routes() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });

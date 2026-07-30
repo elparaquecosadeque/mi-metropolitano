@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DayGroup, Route, Schedule } from '../models/route.model';
+import { DayGroup, Schedule } from '../models/route.model';
 
 /** Minutes before a window closes/opens to show an indicator. */
 const THRESHOLD_MINUTES = 30;
@@ -7,17 +7,16 @@ const THRESHOLD_MINUTES = 30;
 @Injectable({ providedIn: 'root' })
 export class ScheduleService {
   /** True if any schedule window covers the given Date (Lima time). */
-  isAvailable(route: Route, now: Date): boolean {
-    return route.schedules.some((s) => this.windowActive(s, now));
+  isAvailable(schedules: Schedule[], now: Date): boolean {
+    return schedules.some((s) => this.windowActive(s, now));
   }
 
   /**
-   * Minutes until the route stops service (current window closes).
-   * Returns null if not currently available.
-   * Returns the value only when it's ≤ THRESHOLD_MINUTES (i.e. "ending soon").
+   * Minutes until service stops (current window closes).
+   * Returns null if not available, or if more than THRESHOLD_MINUTES away.
    */
-  minutesToClose(route: Route, now: Date): number | null {
-    for (const s of route.schedules) {
+  minutesToClose(schedules: Schedule[], now: Date): number | null {
+    for (const s of schedules) {
       if (!this.windowActive(s, now)) continue;
       const mins = this.minutesUntilTime(s.end, now);
       return mins <= THRESHOLD_MINUTES ? mins : null;
@@ -26,14 +25,13 @@ export class ScheduleService {
   }
 
   /**
-   * Minutes until the route next becomes available.
-   * Returns null if already available.
-   * Returns the value only when it's ≤ THRESHOLD_MINUTES (i.e. "starting soon").
+   * Minutes until next availability window starts.
+   * Returns null if already available, or if more than THRESHOLD_MINUTES away.
    */
-  minutesToOpen(route: Route, now: Date): number | null {
-    if (this.isAvailable(route, now)) return null;
+  minutesToOpen(schedules: Schedule[], now: Date): number | null {
+    if (this.isAvailable(schedules, now)) return null;
     let min = Infinity;
-    for (const s of route.schedules) {
+    for (const s of schedules) {
       if (!this.dayMatches(s.days, now)) continue;
       const mins = this.minutesUntilTime(s.start, now);
       if (mins >= 0 && mins < min) min = mins;

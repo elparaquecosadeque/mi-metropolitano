@@ -106,35 +106,27 @@ describe('RoutingService — backtrack awareness', () => {
 
 describe('ScheduleService', () => {
   const svc = new ScheduleService();
-  const makeRoute = (schedules: any) => ({ schedules } as any);
 
   it('returns true when current time is within a weekday window', () => {
-    const route = makeRoute([{ days: ['lunes-sabado'], start: '05:00', end: '23:00' }]);
-    expect(svc.isAvailable(route, MON_10)).toBe(true);
+    expect(svc.isAvailable([{ days: ['lunes-sabado'], start: '05:00', end: '23:00' }], MON_10)).toBe(true);
   });
 
   it('returns false when current time is past the window end', () => {
-    const route = makeRoute([{ days: ['lunes-sabado'], start: '05:00', end: '23:00' }]);
-    expect(svc.isAvailable(route, MON_2330)).toBe(false);
+    expect(svc.isAvailable([{ days: ['lunes-sabado'], start: '05:00', end: '23:00' }], MON_2330)).toBe(false);
   });
 
   it('returns false on a non-matching day', () => {
-    const route = makeRoute([{ days: ['lv'], start: '05:00', end: '22:00' }]);
     const sunday = new Date('2025-01-05T10:00:00');
-    expect(svc.isAvailable(route, sunday)).toBe(false);
+    expect(svc.isAvailable([{ days: ['lv'], start: '05:00', end: '22:00' }], sunday)).toBe(false);
   });
 
   it('returns true for midnight-spanning window at the late end', () => {
-    const route = makeRoute([{ days: ['viernesSabado'], start: '23:30', end: '04:00' }]);
-    const fridayNight = new Date('2025-01-03T23:45:00'); // Friday 23:45
-    expect(svc.isAvailable(route, fridayNight)).toBe(true);
+    const fridayNight = new Date('2025-01-03T23:45:00');
+    expect(svc.isAvailable([{ days: ['viernesSabado'], start: '23:30', end: '04:00' }], fridayNight)).toBe(true);
   });
 
   it('returns true for midnight-spanning window in the early hours', () => {
-    const route = makeRoute([{ days: ['viernesSabado'], start: '23:30', end: '04:00' }]);
-    // Saturday 01:00 — the viernesSabado window started on Friday night, now it's Saturday 01:00
-    // Saturday is also a valid 'viernesSabado' day (dow=6), and 01:00 < 04:00 → active
     const satEarly = new Date('2025-01-04T01:00:00');
-    expect(svc.isAvailable(route, satEarly)).toBe(true);
+    expect(svc.isAvailable([{ days: ['viernesSabado'], start: '23:30', end: '04:00' }], satEarly)).toBe(true);
   });
 });

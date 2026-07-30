@@ -6,6 +6,15 @@ export interface Schedule {
   end: string;   // HH:MM — if end < start, service spans midnight
 }
 
+/**
+ * A time-variant stop sequence: different stations operate during different schedule windows.
+ * Used when a route changes its stop pattern depending on time of day.
+ */
+export interface TimeVariant {
+  stations: string[];
+  schedules: Schedule[];
+}
+
 export type RouteType = 'troncal' | 'expreso' | 'lechucero';
 
 export interface Route {
@@ -23,6 +32,11 @@ export interface Route {
    * Only meaningful when bidirectional: true. If absent, northbound uses `stations` reversed.
    */
   stationsNorthbound?: string[];
+  /**
+   * Time-variant stop sequences. When defined, routing uses these instead of
+   * top-level stations/schedules. Each variant is active during its own schedules.
+   */
+  variants?: TimeVariant[];
   schedules: Schedule[];
   bidirectional: boolean;
 }
