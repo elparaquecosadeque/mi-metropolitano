@@ -1,10 +1,11 @@
-import { Component, signal, computed, effect, OnDestroy, inject, DOCUMENT } from '@angular/core';
+import { Component, signal, computed, effect, OnDestroy, inject, DOCUMENT, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg } from '../models/route.model';
 import { STATIONS } from '../data/routes';
 import { StationPickerComponent } from './station-picker.component';
+import QRCode from 'qrcode';
 
 const FAVORITES_KEY = 'metro_favorites';
 const STARRED_KEY = 'metro_starred';
@@ -37,6 +38,9 @@ export class PlannerComponent implements OnDestroy {
   filterMode = signal<'all' | 'fastest'>('all');
   favorites = signal<Favorite[]>(this.loadFavorites());
   copied = signal(false);
+  showQr = signal(false);
+
+  @ViewChild('qrCanvas') private qrCanvas?: ElementRef<HTMLCanvasElement>;
   starredKeys = signal<Set<string>>(this.loadStarred());
 
   private ticker = setInterval(() => {
@@ -106,6 +110,19 @@ export class PlannerComponent implements OnDestroy {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     });
+  }
+
+  generateQr() {
+    this.showQr.set(true);
+    // Canvas is rendered after signal flips; use setTimeout to wait for next paint
+    setTimeout(() => {
+      const canvas = this.qrCanvas?.nativeElement;
+      if (canvas) QRCode.toCanvas(canvas, window.location.href, { width: 240, margin: 2 });
+    });
+  }
+
+  closeQr() {
+    this.showQr.set(false);
   }
 
   toggleTheme() {

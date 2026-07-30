@@ -76,6 +76,7 @@
         <button class="share-btn" (click)="copyLink()">
           {{ copied() ? '✓ Copiado' : '🔗 Copiar enlace' }}
         </button>
+        <button class="qr-btn" (click)="generateQr()" title="Generar QR para compartir">📱 Genera QR</button>
       </div>
     }
   </section>
@@ -217,3 +218,13 @@
     }
   </section>
 </div>
+
+@if (showQr()) {
+  <div class="qr-overlay" (click)="closeQr()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+      <p class="qr-label">Escanea para abrir esta ruta</p>
+      <canvas #qrCanvas></canvas>
+      <button class="qr-close" (click)="closeQr()">✕ Cerrar</button>
+    </div>
+  </div>
+}

@@ -126,7 +126,15 @@ export class RoutingService {
         }
       }
     }
-    return options;
+
+    // Keep only best-scored option per route pair — drops visually-identical cards via different hubs
+    const bestByPair = new Map<string, RouteOption>();
+    for (const opt of options) {
+      const pairKey = `${opt.legs[0].route.id}|${opt.legs[1].route.id}`;
+      const existing = bestByPair.get(pairKey);
+      if (!existing || opt.score < existing.score) bestByPair.set(pairKey, opt);
+    }
+    return [...bestByPair.values()];
   }
 
   // ── 2 transfers ─────────────────────────────────────────────────────────────
@@ -185,7 +193,15 @@ export class RoutingService {
         }
       }
     }
-    return options;
+
+    // Keep only best-scored option per route triple — drops visually-identical cards via different hub combos
+    const bestByTriple = new Map<string, RouteOption>();
+    for (const opt of options) {
+      const tripleKey = `${opt.legs[0].route.id}|${opt.legs[1].route.id}|${opt.legs[2].route.id}`;
+      const existing = bestByTriple.get(tripleKey);
+      if (!existing || opt.score < existing.score) bestByTriple.set(tripleKey, opt);
+    }
+    return [...bestByTriple.values()];
   }
 
   // ── Scoring ─────────────────────────────────────────────────────────────────
