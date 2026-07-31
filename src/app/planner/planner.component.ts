@@ -105,24 +105,99 @@ export class PlannerComponent implements OnDestroy {
     });
   }
 
-  copyLink() {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    });
+  readonly hasNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
+
+  stationName(id: string): string {
+    return this.stations.find(s => s.id === id)?.name ?? id;
+  }
+
+  qrTitle(): string {
+    return `Ruta Metropolitano ${this.stationName(this.originId())} → ${this.stationName(this.destinationId())}`;
+  }
+
+  private async renderQrToCanvas(canvas: HTMLCanvasElement): Promise<void> {
+    const url = window.location.href;
+    const title = this.qrTitle();
+    const qrSize = 240;
+    const pad = 16;
+    const fontSize = 13;
+    const lineH = 18;
+
+    // Render QR to offscreen canvas (white bg via margin)
+    const tmp = this.doc.createElement('canvas') as HTMLCanvasElement;
+    await QRCode.toCanvas(tmp, url, { width: qrSize, margin: 2 });
+
+    // Measure and word-wrap title
+    const ctx = canvas.getContext('2d')!;
+    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, Arial, sans-serif`;
+    const words = title.split(' ');
+    const lines: string[] = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? `${cur} ${w}` : w;
+      if (ctx.measureText(test).width > qrSize) { if (cur) lines.push(cur); cur = w; }
+      else cur = test;
+    }
+    if (cur) lines.push(cur);
+
+    const titleH = lines.length * lineH + pad;
+    canvas.width  = qrSize + pad * 2;
+    canvas.height = titleH + qrSize + pad;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#1a1a2e';
+    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, pad / 2 + i * lineH));
+
+    ctx.drawImage(tmp, pad, titleH);
   }
 
   generateQr() {
     this.showQr.set(true);
-    // Canvas is rendered after signal flips; use setTimeout to wait for next paint
-    setTimeout(() => {
+    setTimeout(async () => {
       const canvas = this.qrCanvas?.nativeElement;
-      if (canvas) QRCode.toCanvas(canvas, window.location.href, { width: 240, margin: 2 });
+      if (canvas) await this.renderQrToCanvas(canvas);
     });
   }
 
   closeQr() {
     this.showQr.set(false);
+  }
+
+  shareNative() {
+    navigator.share({ title: this.qrTitle(), url: window.location.href });
+  }
+
+  shareVia(platform: 'whatsapp' | 'telegram' | 'facebook' | 'messenger') {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(this.qrTitle());
+    const targets: Record<typeof platform, string> = {
+      whatsapp:  `https://wa.me/?text=${text}%20${url}`,
+      telegram:  `https://t.me/share/url?url=${url}&text=${text}`,
+      facebook:  `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      messenger: `fb-messenger://share/?link=${url}`,
+    };
+    window.open(targets[platform], '_blank', 'noopener');
+  }
+
+  downloadQr() {
+    const canvas = this.qrCanvas?.nativeElement;
+    if (!canvas) return;
+    const a = this.doc.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'metropolitano-qr.png';
+    a.click();
+  }
+
+  copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    });
   }
 
   toggleTheme() {

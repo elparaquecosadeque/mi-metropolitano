@@ -43,6 +43,26 @@ src/app/data/routes.json
 
 Edit it directly to update schedules, add/remove stations, or correct route stops. No code changes needed — the app imports this JSON at build time.
 
+### Admin route editor
+
+Navigate to `?admin` (append `?admin` to the URL) to open a hidden route editor. From there you can:
+- Edit station lists (add, remove, reorder)
+- Toggle direction-specific stops (`stationsNorthbound`) for bidirectional routes
+- Switch a route to time-variant mode and edit each variant's stops + schedule independently
+- Download the updated `routes.json` and replace `src/app/data/routes.json` in the project
+
+## UI features
+
+- **Origin / Destination pickers** — searchable station dropdowns with URL params (`?from=&to=`) for direct linking
+- **Directo / Con trasbordos** toggle — finds both 1- and 2-transfer routes
+- **⚡ El más rápido** filter — filters to options with at least one expreso leg (only shown when relevant)
+- **Time override** — plan for a future time; amber banner + "Usar hora actual" to reset
+- **⭐ Priorizar resultados** — star any result card to pin it to the top of the list; persisted in `localStorage`
+- **📱 Genera QR** — generates a QR code (local, no external API) with the route title burned into the image; share via WhatsApp, Telegram, Facebook, Messenger, or native share sheet (covers Instagram on mobile); download as PNG
+- **Favorites** — up to 3 saved origin/destination pairs, stored in `localStorage`
+- **Dark/light theme** — persisted in `localStorage`
+- **PWA** — installable, works offline
+
 ## Project structure
 
 ```
@@ -51,12 +71,14 @@ src/app/
     routes.json          ← single source of truth for all routes + stations
     routes.ts            ← thin TS wrapper exporting STATIONS, ROUTES, STATION_MAP
   models/
-    route.model.ts       ← TypeScript interfaces
+    route.model.ts       ← TypeScript interfaces (Route, Station, RouteOption, RouteLeg, TimeVariant)
   services/
-    routing.service.ts   ← routing engine (direct, 1-transfer, 2-transfer + geo filter)
+    routing.service.ts   ← routing engine (direct, 1-transfer, 2-transfer + geo filter + dedup)
     schedule.service.ts  ← availability checks (day-of-week + time windows)
   planner/
-    planner.component.*  ← main UI (selectors, results, theme toggle, favorites)
+    planner.component.*  ← main UI (selectors, results, theme, favorites, star, QR)
+  admin/
+    admin.component.ts   ← hidden route editor (accessed via ?admin)
   styles.scss            ← CSS custom properties for dark/light themes
 ```
 
