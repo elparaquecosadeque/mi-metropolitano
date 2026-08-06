@@ -1,11 +1,29 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ROUTES, STATION_MAP } from '../data/routes';
-import type { Route, RouteType } from '../models/route.model';
+import { ScheduleService } from '../services/schedule.service';
+import type { Route, RouteType, Schedule } from '../models/route.model';
 
 const TYPE_LABELS: Record<RouteType, string> = {
   expreso: '⚡ Expresos',
   troncal: '🚌 Troncales',
   lechucero: '🦉 Lechuceros',
+};
+
+type RouteStatus = 'running' | 'closing-soon' | 'opening-soon' | 'closed';
+type FilterMode = 'all' | 'running' | 'closed' | 'soon';
+
+const STATUS_LABEL: Record<RouteStatus, string> = {
+  running: 'Funcionando',
+  'closing-soon': 'Por finalizar',
+  'opening-soon': 'Por comenzar',
+  closed: 'No disponible',
+};
+
+const STATUS_DOT: Record<RouteStatus, string> = {
+  running: '🟢',
+  'closing-soon': '🟡',
+  'opening-soon': '🟡',
+  closed: '⚪',
 };
 
 @Component({
@@ -15,13 +33,21 @@ const TYPE_LABELS: Record<RouteType, string> = {
     <div class="page">
       <h2>Rutas y horarios</h2>
 
-      @for (group of groups; track group.type) {
+      <div class="filter-bar">
+        <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todas</button>
+        <button [class.active]="filterMode() === 'running'" (click)="filterMode.set('running')">Funcionando ahora</button>
+        <button [class.active]="filterMode() === 'closed'" (click)="filterMode.set('closed')">No disponibles</button>
+        <button [class.active]="filterMode() === 'soon'" (click)="filterMode.set('soon')">Por comenzar/finalizar</button>
+      </div>
+
+      @for (group of filteredGroups(); track group.type) {
         <section class="group">
           <h3>{{ group.label }}</h3>
           @for (route of group.routes; track route.id) {
             <div class="route-card">
               <button class="route-head" (click)="toggle(route.id)" [style.borderLeftColor]="route.color">
-                <span>{{ route.name }}</span>
+                <span class="route-name">{{ route.name }}</span>
+                <span class="status">{{ statusDot(route) }} {{ statusLabel(route) }}</span>
                 <span class="chevron">{{ expanded() === route.id ? '▲' : '▼' }}</span>
               </button>
 
@@ -59,12 +85,35 @@ const TYPE_LABELS: Record<RouteType, string> = {
             </div>
           }
         </section>
+      } @empty {
+        <p class="hint">Ninguna ruta calza con este filtro ahora mismo.</p>
       }
     </div>
   `,
   styles: [`
     .page { max-width: 600px; margin: 0 auto; padding: 0 1rem 1rem; }
     h2 { color: var(--c-primary); }
+    .hint { color: var(--c-text-muted); }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .filter-bar button {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      color: var(--c-text-muted);
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .filter-bar button.active {
+      background: var(--c-primary);
+      border-color: var(--c-primary);
+      color: white;
+    }
     .group { margin-bottom: 1.5rem; }
     h3 { font-size: 1rem; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
     .route-card {
@@ -87,7 +136,10 @@ const TYPE_LABELS: Record<RouteType, string> = {
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
+      gap: 0.5rem;
     }
+    .route-name { flex-shrink: 0; }
+    .status { flex: 1; text-align: right; font-size: 0.8rem; font-weight: normal; color: var(--c-text-muted); }
     .chevron { color: var(--c-text-muted); font-size: 0.8rem; }
     .route-body { padding: 0 1rem 1rem; }
     .schedule { font-size: 0.85rem; color: var(--c-text-muted); margin-bottom: 0.25rem; }
@@ -97,12 +149,22 @@ const TYPE_LABELS: Record<RouteType, string> = {
     .variant { margin-bottom: 1rem; }
   `],
 })
-export class RoutesPageComponent {
+export class RoutesPageComponent implements OnDestroy {
+  private schedule = inject(ScheduleService);
+
   readonly groups = (['expreso', 'troncal', 'lechucero'] as RouteType[])
     .map(type => ({ type, label: TYPE_LABELS[type], routes: ROUTES.filter((r: Route) => r.type === type) }))
     .filter(g => g.routes.length > 0);
 
   readonly expanded = signal<string | null>(null);
+  readonly filterMode = signal<FilterMode>('all');
+  readonly now = signal(new Date());
+
+  private ticker = setInterval(() => this.now.set(new Date()), 60_000);
+
+  ngOnDestroy() {
+    clearInterval(this.ticker);
+  }
 
   toggle(id: string) {
     this.expanded.set(this.expanded() === id ? null : id);
@@ -114,5 +176,42 @@ export class RoutesPageComponent {
 
   stopsLabel(stations: string[]): string {
     return `${this.stationName(stations[0])} → ${this.stationName(stations[stations.length - 1])}`;
+  }
+
+  private routeSchedules(route: Route): Schedule[] {
+    return route.variants?.length ? route.variants.flatMap(v => v.schedules) : route.schedules;
+  }
+
+  routeStatus(route: Route): RouteStatus {
+    const schedules = this.routeSchedules(route);
+    const now = this.now();
+    if (this.schedule.isAvailable(schedules, now)) {
+      return this.schedule.minutesToClose(schedules, now) !== null ? 'closing-soon' : 'running';
+    }
+    return this.schedule.minutesToOpen(schedules, now) !== null ? 'opening-soon' : 'closed';
+  }
+
+  statusLabel(route: Route): string {
+    return STATUS_LABEL[this.routeStatus(route)];
+  }
+
+  statusDot(route: Route): string {
+    return STATUS_DOT[this.routeStatus(route)];
+  }
+
+  private matchesFilter(status: RouteStatus, filter: FilterMode): boolean {
+    switch (filter) {
+      case 'all': return true;
+      case 'running': return status === 'running';
+      case 'closed': return status === 'closed';
+      case 'soon': return status === 'closing-soon' || status === 'opening-soon';
+    }
+  }
+
+  filteredGroups() {
+    const filter = this.filterMode();
+    return this.groups
+      .map(g => ({ ...g, routes: g.routes.filter(r => this.matchesFilter(this.routeStatus(r), filter)) }))
+      .filter(g => g.routes.length > 0);
   }
 }
