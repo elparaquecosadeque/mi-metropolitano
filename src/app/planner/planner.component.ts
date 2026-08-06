@@ -9,7 +9,6 @@ import QRCode from 'qrcode';
 
 const FAVORITES_KEY = 'metro_favorites';
 const STARRED_KEY = 'metro_starred';
-const THEME_KEY = 'metro_theme';
 const THRESHOLD = 30;
 
 function toDatetimeLocal(d: Date): string {
@@ -33,7 +32,6 @@ export class PlannerComponent implements OnDestroy {
   now = signal(new Date());
   isManualTime = signal(false);
   datetimeInputValue = toDatetimeLocal(new Date());
-  isLight = signal(localStorage.getItem(THEME_KEY) === 'light');
   withTransfers = signal(true);
   filterMode = signal<'all' | 'fastest'>('all');
   favorites = signal<Favorite[]>(this.loadFavorites());
@@ -86,8 +84,6 @@ export class PlannerComponent implements OnDestroy {
   );
 
   constructor(private routing: RoutingService) {
-    if (this.isLight()) this.doc.body.classList.add('light');
-
     // Pre-select stations from URL query params
     const validIds = new Set(STATIONS.map(s => s.id));
     const params = new URLSearchParams(window.location.search);
@@ -198,13 +194,6 @@ export class PlannerComponent implements OnDestroy {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     });
-  }
-
-  toggleTheme() {
-    const next = !this.isLight();
-    this.isLight.set(next);
-    this.doc.body.classList.toggle('light', next);
-    localStorage.setItem(THEME_KEY, next ? 'light' : 'dark');
   }
 
   ngOnDestroy() {

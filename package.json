@@ -1,9 +1,10 @@
 {
   "name": "mi-metropolitano",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prebuild": "node scripts/generate-version.mjs",
     "build": "ng build --base-href /mi-metropolitano/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

@@ -1,12 +1,4 @@
 <div class="app">
-  <header>
-    <h1>🚌 Metropolitano</h1>
-    <span class="time">{{ formatTime(now()) }}</span>
-    <button class="theme-btn" (click)="toggleTheme()" [title]="isLight() ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'">
-      {{ isLight() ? '🌙' : '☀️' }}
-    </button>
-  </header>
-
   <!-- Planning time banner (shown when using manual time) -->
   @if (isManualTime()) {
     <div class="planning-banner">
