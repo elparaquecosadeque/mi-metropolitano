@@ -4,6 +4,8 @@ PWA for Lima's Metropolitano BRT system — answers "¿cuál bus tomo ahora?" gi
 
 **Live**: https://elparaquecosadeque.github.io/mi-metropolitano/
 
+See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+
 ---
 
 ## Running locally
@@ -50,6 +52,20 @@ Navigate to `?admin` (append `?admin` to the URL) to open a hidden route editor.
 - Toggle direction-specific stops (`stationsNorthbound`) for bidirectional routes
 - Switch a route to time-variant mode and edit each variant's stops + schedule independently
 - Download the updated `routes.json` and replace `src/app/data/routes.json` in the project
+
+## App icons
+
+`public/favicon.ico` is the master artwork (a 1254×1254 PNG despite the `.ico` extension). Every other icon —
+`public/icons/icon-*.png` (used by `manifest.webmanifest` for Android/desktop install) and
+`public/apple-touch-icon.png` (used by iOS "Add to Home Screen") — is generated from it. To regenerate after
+changing the master artwork:
+
+```bash
+for size in 72 96 128 144 152 192 384 512; do
+  ffmpeg -y -i public/favicon.ico -vf "scale=${size}:${size}:flags=lanczos" "public/icons/icon-${size}x${size}.png"
+done
+ffmpeg -y -i public/favicon.ico -vf "scale=180:180:flags=lanczos" public/apple-touch-icon.png
+```
 
 ## UI features
 
