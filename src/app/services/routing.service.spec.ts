@@ -61,6 +61,17 @@ describe('RoutingService — transfer routes', () => {
     const available = opts.filter(o => o.legs.every(l => l.available));
     expect(available.length).toBeGreaterThan(0);
   });
+
+  it('an unavailable short direct (e.g. a Fri/Sat-only lechucero) does not suppress a longer available transfer', () => {
+    // angamos -> jiron-union: Ruta C runs direct (10 stops), and Lechucero also connects them
+    // directly in only 2 stops but is Fri/Sat 23:30-04:00 only — it must not set the bar that
+    // the Expreso 1 -> Ruta A/C transfer (6 stops) gets judged against.
+    const opts = makeRouting().findOptions('angamos', 'jiron-union', MON_10, 2);
+    const viaExpreso1 = opts.find(
+      o => o.type === 'transfer' && o.legs[0].route.id === 'expreso-1'
+    );
+    expect(viaExpreso1).toBeDefined();
+  });
 });
 
 describe('RoutingService — backtrack awareness', () => {

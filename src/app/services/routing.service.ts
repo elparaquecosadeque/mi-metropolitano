@@ -57,10 +57,13 @@ export class RoutingService {
         ]
       : [];
 
-    // Secondary backtrack guard: if a direct exists, drop transfers that are ≥1.75× its stops
+    // Secondary backtrack guard: if an available direct exists, drop transfers that are ≥1.75× its stops
     // (the geographic hub filter is the primary defense; this catches any remaining edge cases)
-    const minDirectStops = directs.length
-      ? Math.min(...directs.map(o => o.legs[0].stops))
+    // Unavailable directs (e.g. a Fri/Sat-only lechucero) must not set the bar — a short but
+    // currently-closed direct would otherwise suppress every legitimate transfer option.
+    const availableDirects = directs.filter(o => o.legs[0].available);
+    const minDirectStops = availableDirects.length
+      ? Math.min(...availableDirects.map(o => o.legs[0].stops))
       : Infinity;
 
     const filteredTransfers = transfers.filter(o => {
