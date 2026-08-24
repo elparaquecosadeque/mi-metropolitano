@@ -1,6 +1,7 @@
 {
   "name": "mi-metropolitano",
   "version": "1.0.0",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
