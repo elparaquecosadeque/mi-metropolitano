@@ -73,11 +73,18 @@
     }
   </section>
 
-  <!-- Filter bar — shown when transfer mode is active and there are expreso-based options -->
-  @if (withTransfers() && hasTransferResults() && hasEspresoOptions()) {
+  <!-- Filter bar -->
+  @if ((withTransfers() && hasTransferResults() && hasEspresoOptions()) || hasUnavailableOptions()) {
     <div class="filter-bar">
-      <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todos</button>
-      <button [class.active]="filterMode() === 'fastest'" (click)="filterMode.set('fastest')">⚡ El más rápido</button>
+      @if (withTransfers() && hasTransferResults() && hasEspresoOptions()) {
+        <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todos</button>
+        <button [class.active]="filterMode() === 'fastest'" (click)="filterMode.set('fastest')">⚡ El más rápido</button>
+      }
+      @if (hasUnavailableOptions()) {
+        <button class="hide-unavailable-btn" [class.active]="hideUnavailable()" (click)="hideUnavailable.set(!hideUnavailable())">
+          🚫 Ocultar no disponibles
+        </button>
+      }
     </div>
   }
 

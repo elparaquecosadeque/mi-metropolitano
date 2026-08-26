@@ -34,6 +34,7 @@ export class PlannerComponent implements OnDestroy {
   datetimeInputValue = toDatetimeLocal(new Date());
   withTransfers = signal(true);
   filterMode = signal<'all' | 'fastest'>('all');
+  hideUnavailable = signal(false);
   favorites = signal<Favorite[]>(this.loadFavorites());
   copied = signal(false);
   showQr = signal(false);
@@ -56,11 +57,19 @@ export class PlannerComponent implements OnDestroy {
     this.options().some(o => o.legs.some(l => l.route.type === 'expreso'))
   );
 
+  readonly hasUnavailableOptions = computed(() =>
+    this.options().some(o => !o.legs.every(l => l.available))
+  );
+
   readonly filteredOptions = computed<RouteOption[]>(() => {
-    const opts = this.options();
+    let opts = this.options();
     if (this.filterMode() === 'fastest') {
       const fastest = opts.filter(o => o.legs.some(l => l.route.type === 'expreso'));
-      return fastest.length > 0 ? fastest : opts;
+      opts = fastest.length > 0 ? fastest : opts;
+    }
+    if (this.hideUnavailable()) {
+      const available = opts.filter(o => o.legs.every(l => l.available));
+      opts = available.length > 0 ? available : opts;
     }
     return opts;
   });

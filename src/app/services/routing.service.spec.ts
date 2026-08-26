@@ -72,6 +72,21 @@ describe('RoutingService — transfer routes', () => {
     );
     expect(viaExpreso1).toBeDefined();
   });
+
+  it('picks the shortest hub when several hubs tie on tier and backtrack (Expreso 5 -> Ruta C avoids the long Estación Central detour)', () => {
+    // espana -> benavides: Expreso 5 skips benavides, but angamos/ricardo-palma (7 stops
+    // total via either) are both much closer hubs than estacion-central (11 stops total).
+    // All tie on tier + backtrack, so only the total-stops tiebreaker in scoreTransfer
+    // picks a short hub over the long one.
+    const opts = makeRouting().findOptions('espana', 'benavides', MON_10, 2);
+    const viaExpreso5 = opts.find(
+      o => o.type === 'transfer' && o.legs[0].route.id === 'expreso-5' && o.legs[1].route.id === 'ruta-c'
+    );
+    expect(viaExpreso5).toBeDefined();
+    expect(viaExpreso5!.legs[0].alightingStation.id).not.toBe('estacion-central');
+    const totalStops = viaExpreso5!.legs.reduce((s, l) => s + l.stops, 0);
+    expect(totalStops).toBe(7);
+  });
 });
 
 describe('RoutingService — backtrack awareness', () => {

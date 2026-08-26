@@ -486,6 +486,10 @@
   }
 }
 
+.hide-unavailable-btn{
+  margin-left: auto;
+}
+
 // ── Responsive tweaks ─────────────────────────────────────────────────────────
 @media (max-width: 360px) {
   .toggle-group button { font-size: 0.72rem; padding: 0.4rem 0.15rem; }
