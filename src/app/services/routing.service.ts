@@ -231,11 +231,18 @@ export class RoutingService {
     else if (expresoCount > 0)        base = 4 + tierBase;
     else                              base = 5 + tierBase;
 
+    // "Stops" isn't a fair unit across route types: an expreso stop skips several physical
+    // stations while a troncal stop is exactly one, so total stops alone can tie two hubs
+    // that cover the same real distance. Riding the expreso further and switching to the
+    // troncal for a shorter last stretch is strictly better (troncal is the slow one), so
+    // weight non-expreso stops higher than total stops as the finer tiebreaker.
+    const slowStops = legs.filter((l) => l.route.type !== 'expreso').reduce((s, l) => s + l.stops, 0);
     const totalStops = legs.reduce((s, l) => s + l.stops, 0);
-    // Small penalties: rank backtracking options after non-backtracking, and among hub
-    // candidates for the same route pair (deduped below by score) prefer fewer total stops —
-    // otherwise a hub tying on tier+backtrack but with a much longer ride can win arbitrarily.
-    return base + backtrackStops * 0.1 + totalStops * 0.001;
+    // Small penalties: rank backtracking options after non-backtracking, then among hub
+    // candidates for the same route pair (deduped below by score) prefer less time on the
+    // slow leg, then fewer total stops — otherwise a hub tying on tier+backtrack but with a
+    // much longer ride can win arbitrarily.
+    return base + backtrackStops * 0.1 + slowStops * 0.001 + totalStops * 0.0001;
   }
 
   // ── Leg builder ─────────────────────────────────────────────────────────────

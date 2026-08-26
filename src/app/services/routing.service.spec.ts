@@ -73,19 +73,19 @@ describe('RoutingService — transfer routes', () => {
     expect(viaExpreso1).toBeDefined();
   });
 
-  it('picks the shortest hub when several hubs tie on tier and backtrack (Expreso 5 -> Ruta C avoids the long Estación Central detour)', () => {
-    // espana -> benavides: Expreso 5 skips benavides, but angamos/ricardo-palma (7 stops
-    // total via either) are both much closer hubs than estacion-central (11 stops total).
-    // All tie on tier + backtrack, so only the total-stops tiebreaker in scoreTransfer
-    // picks a short hub over the long one.
+  it('picks the hub that rides the expreso furthest (Expreso 5 -> Ruta C: Ricardo Palma, not Angamos or Estación Central)', () => {
+    // espana -> benavides: Expreso 5 skips benavides. Angamos (5+2=7 stops) and Ricardo
+    // Palma (6+1=7 stops) tie on total stops too, since an expreso stop and a troncal stop
+    // aren't the same real distance — but Ricardo Palma spends 1 less stop on the slow
+    // troncal leg, which the tiebreaker should prefer over Angamos, and both crush the
+    // estacion-central detour (11 stops total).
     const opts = makeRouting().findOptions('espana', 'benavides', MON_10, 2);
     const viaExpreso5 = opts.find(
       o => o.type === 'transfer' && o.legs[0].route.id === 'expreso-5' && o.legs[1].route.id === 'ruta-c'
     );
     expect(viaExpreso5).toBeDefined();
-    expect(viaExpreso5!.legs[0].alightingStation.id).not.toBe('estacion-central');
-    const totalStops = viaExpreso5!.legs.reduce((s, l) => s + l.stops, 0);
-    expect(totalStops).toBe(7);
+    expect(viaExpreso5!.legs[0].alightingStation.id).toBe('ricardo-palma');
+    expect(viaExpreso5!.legs[1].stops).toBe(1);
   });
 });
 
