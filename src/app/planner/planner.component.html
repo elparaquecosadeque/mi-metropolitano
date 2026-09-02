@@ -47,6 +47,7 @@
   <!-- Station selectors -->
   <section class="inputs">
     <app-station-picker
+      id="origin-picker"
       label="Desde"
       [stations]="stations"
       [selectedId]="originId()"
@@ -56,6 +57,7 @@
     <button class="swap-btn" (click)="swap()" title="Intercambiar origen y destino">⇅</button>
 
     <app-station-picker
+      id="destination-picker"
       label="Hasta"
       [stations]="stations"
       [selectedId]="destinationId()"

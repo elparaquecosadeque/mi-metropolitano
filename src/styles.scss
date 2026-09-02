@@ -45,3 +45,33 @@ body {
   color: var(--c-text);
   transition: background 0.2s, color 0.2s;
 }
+
+// ── driver.js guided tour theming ──────────────────────────────────────────
+.driver-popover {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.driver-popover-title {
+  color: var(--c-primary);
+  font-size: 1.05rem;
+}
+.driver-popover-description { color: var(--c-text); }
+.driver-popover-close-btn {
+  color: var(--c-text-muted);
+  &:hover, &:focus { color: var(--c-text); }
+}
+.driver-popover-progress-text { color: var(--c-text-muted); }
+.driver-popover-footer-btn {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  &:hover, &:focus { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+}
+.driver-popover-arrow-side-left   { border-left-color: var(--c-surface); }
+.driver-popover-arrow-side-right  { border-right-color: var(--c-surface); }
+.driver-popover-arrow-side-top    { border-top-color: var(--c-surface); }
+.driver-popover-arrow-side-bottom { border-bottom-color: var(--c-surface); }

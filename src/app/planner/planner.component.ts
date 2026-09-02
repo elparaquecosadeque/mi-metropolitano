@@ -1,6 +1,7 @@
-import { Component, signal, computed, effect, OnDestroy, inject, DOCUMENT, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, signal, computed, effect, afterNextRender, OnDestroy, inject, DOCUMENT, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg } from '../models/route.model';
 import { STATIONS } from '../data/routes';
@@ -9,7 +10,46 @@ import QRCode from 'qrcode';
 
 const FAVORITES_KEY = 'metro_favorites';
 const STARRED_KEY = 'metro_starred';
+const TOUR_SEEN_KEY = 'metro_tour_seen';
 const THRESHOLD = 30;
+
+const TOUR_STEPS: DriveStep[] = [
+  {
+    element: '.time-selector',
+    popover: {
+      title: '🕐 Elige el momento',
+      description: 'Por defecto se consulta para ahora mismo, pero puedes cambiar la fecha y hora para planear un viaje futuro.',
+    },
+  },
+  {
+    element: '.toggle-group',
+    popover: {
+      title: 'Directo o con trasbordos',
+      description: '"Directo" solo muestra rutas sin cambios de bus. "Con trasbordos" también busca combinaciones de hasta 2 rutas.',
+    },
+  },
+  {
+    element: '#origin-picker',
+    popover: {
+      title: 'Desde dónde sales',
+      description: 'Escribe o busca tu estación de origen.',
+    },
+  },
+  {
+    element: '.swap-btn',
+    popover: {
+      title: 'Intercambiar',
+      description: '¿Ruta de vuelta? Este botón invierte origen y destino al instante.',
+    },
+  },
+  {
+    element: '#destination-picker',
+    popover: {
+      title: 'A dónde vas',
+      description: 'Escribe o busca tu estación de destino y verás las rutas disponibles.',
+    },
+  },
+];
 
 function toDatetimeLocal(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -108,6 +148,23 @@ export class PlannerComponent implements OnDestroy {
       const search = f && t ? `?from=${f}&to=${t}` : '';
       history.replaceState(null, '', window.location.pathname + search);
     });
+
+    // Guided tour: first visit ever, or re-launched from the menu via ?tour=1
+    if (params.get('tour') === '1' || !localStorage.getItem(TOUR_SEEN_KEY)) {
+      afterNextRender(() => this.startTour());
+    }
+  }
+
+  private startTour() {
+    driver({
+      showProgress: true,
+      progressText: '{{current}} de {{total}}',
+      nextBtnText: 'Siguiente',
+      prevBtnText: 'Anterior',
+      doneBtnText: 'Listo',
+      steps: TOUR_STEPS,
+      onDestroyed: () => localStorage.setItem(TOUR_SEEN_KEY, '1'),
+    }).drive();
   }
 
   readonly hasNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;

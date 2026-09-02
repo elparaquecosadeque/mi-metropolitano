@@ -21,6 +21,7 @@ import { ThemeService } from './theme.service';
         <a href="?page=contacto" (click)="menuOpen.set(false)">✉️ Contacto / Reporte</a>
         <a href="?page=nosotros" (click)="menuOpen.set(false)">ℹ️ Nosotros</a>
         <a href="?page=instalar" (click)="menuOpen.set(false)">📲 Cómo instalar</a>
+        <a href="?tour=1" (click)="menuOpen.set(false)">🧭 Ver tutorial</a>
       </nav>
     </header>
   `,
@@ -73,16 +74,16 @@ import { ThemeService } from './theme.service';
       border: 1px solid var(--c-border);
       border-radius: 10px;
       overflow: hidden;
-      max-height: 0;
+      max-height: 20rem;
       opacity: 0;
-      transform: translateY(-8px);
+      transform-origin: top;
+      transform: scaleY(0) translateY(-8px);
       pointer-events: none;
-      transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 0.2s ease, transform 0.25s ease;
     }
     .menu.open {
-      max-height: 20rem;
       opacity: 1;
-      transform: translateY(0);
+      transform: scaleY(1) translateY(0);
       pointer-events: auto;
     }
     .menu a {
