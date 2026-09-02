@@ -1,8 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-// Project-dedicated address — replace once a custom domain/mailbox exists.
-const CONTACT_EMAIL = 'mimetropolitano.app@gmail.com';
+const CONTACT_EMAIL = 'contacto@oficinamentaldebruno.com';
 
 const SUBJECTS = ['Comentario', 'Sugerencia', 'Reporte de problema'] as const;
 
