@@ -13,6 +13,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - **Página "Cómo instalar"** (`?page=instalar`): instrucciones para iOS/Safari; en Android/Chrome muestra un botón que dispara el instalado nativo (`beforeinstallprompt`) en vez de solo instrucciones.
 - **Filtro de estado en "Rutas y horarios"**: Todas / Funcionando ahora / No disponibles / Por comenzar-finalizar, calculado en vivo a partir de la hora actual (se refresca cada 60s). Cada ruta muestra un indicador de color (🟢/🟡/⚪) incluso colapsada.
 - **Filtro "Ocultar no disponibles"** en el planificador: en la barra de filtros aparece un botón para ocultar las opciones que no se pueden tomar a la hora consultada, dejando solo las que sí están operando. Si todas las opciones encontradas están cerradas, se siguen mostrando (para no dejar la pantalla vacía).
+- **El formulario de Contacto ya no abre el cliente de correo**: en vez de armar un `mailto:` (que saca al usuario de la app y depende de que tenga un cliente de correo configurado), el mensaje se envía por AJAX vía FormSubmit.co sin salir del planificador. Mientras envía, el botón se deshabilita ("Enviando…"); al terminar se muestra un mensaje de éxito o, si falla, uno de error con el correo de contacto como texto para escribir directamente. Incluye un campo honeypot oculto contra spam.
 
 ### Cambiado
 - El selector de tema (☀️/🌙) se movió del header del planificador al header compartido — ahora aplica en todas las páginas, no solo en el planificador.
