@@ -48,6 +48,7 @@
                 }
               ],
               "outputHashing": "all",
+              "sourceMap": { "scripts": true, "styles": false, "hidden": true },
               "serviceWorker": "ngsw-config.json"
             },
             "development": {

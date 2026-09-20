@@ -1,9 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TELEMETRY } from '../telemetry/telemetry.service';
 
 const CONTACT_EMAIL = 'contacto@oficinamentaldebruno.com';
 
 const SUBJECTS = ['Comentario', 'Sugerencia', 'Reporte de problema'] as const;
+
+type Status = 'idle' | 'sending' | 'sent' | 'queued' | 'failed';
 
 @Component({
   selector: 'app-contact-page',
@@ -32,7 +35,24 @@ const SUBJECTS = ['Comentario', 'Sugerencia', 'Reporte de problema'] as const;
           <textarea [(ngModel)]="message" name="message" rows="5" required placeholder="Cuéntanos qué pasó..."></textarea>
         </label>
 
-        <button type="submit" [disabled]="!message().trim()">✉️ Enviar</button>
+        <button type="submit" [disabled]="!message().trim() || status() === 'sending'">
+          {{ status() === 'sending' ? 'Enviando…' : '✉️ Enviar' }}
+        </button>
+
+        <div class="status" role="status" aria-live="polite">
+          @switch (status()) {
+            @case ('sent') { <p class="ok">✓ Mensaje enviado. ¡Gracias!</p> }
+            @case ('queued') {
+              <p class="warn">
+                📥 Guardado en tu dispositivo. Lo enviaremos solo cuando nuestro servidor esté disponible
+                (mientras tengas la app abierta).
+              </p>
+            }
+            @case ('failed') { <p class="error">No pudimos enviar tu mensaje. Escríbenos por correo, por favor.</p> }
+          }
+        </div>
+
+        <a class="mail-link" [href]="mailtoHref()">¿Urgente? Escríbenos por correo</a>
       </form>
     </div>
   `,
@@ -64,23 +84,53 @@ const SUBJECTS = ['Comentario', 'Sugerencia', 'Reporte de problema'] as const;
       cursor: pointer;
     }
     button:disabled { opacity: 0.5; cursor: default; }
+    .status p { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+    .status .ok { color: var(--c-primary); }
+    .status .warn { color: var(--c-warning); }
+    .status .error { color: var(--c-danger); }
+    .mail-link { align-self: flex-start; font-size: 0.85rem; color: var(--c-text-muted); }
+    .mail-link:hover { color: var(--c-primary); }
   `],
 })
 export class ContactPageComponent {
+  private readonly telemetry = inject(TELEMETRY);
+
   readonly subjects = SUBJECTS;
   subject = signal<string>(SUBJECTS[0]);
   replyTo = signal('');
   message = signal('');
+  status = signal<Status>('idle');
 
-  send(event: Event) {
-    event.preventDefault();
-    if (!this.message().trim()) return;
+  // Manual plan B: opens the user's mail client prefilled with what they've typed so far.
+  readonly mailtoHref = computed(() => {
     const subject = encodeURIComponent(`Mi Metropolitano - ${this.subject()}`);
-    const bodyLines = [
-      this.message(),
-      this.replyTo() ? `\n\nCorreo de contacto: ${this.replyTo()}` : '',
-    ];
-    const body = encodeURIComponent(bodyLines.join(''));
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    const body = encodeURIComponent(
+      this.message() + (this.replyTo() ? `\n\nCorreo de contacto: ${this.replyTo()}` : ''),
+    );
+    return `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+  });
+
+  async send(event: Event) {
+    event.preventDefault();
+    if (!this.message().trim() || this.status() === 'sending') return;
+
+    this.status.set('sending');
+    const result = await this.telemetry.report({
+      subject: this.subject(),
+      message: this.message().trim(),
+      replyTo: this.replyTo().trim() || undefined,
+    });
+
+    if (result === 'disabled') {
+      // Telemetry inactive (no server configured): behave like before, hand off to the mail client.
+      this.status.set('idle');
+      window.location.href = this.mailtoHref();
+      return;
+    }
+    this.status.set(result);
+    if (result === 'sent' || result === 'queued') {
+      this.message.set('');
+      this.replyTo.set('');
+    }
   }
 }
