@@ -3,6 +3,10 @@ import {
 } from '@angular/core';
 import { Station } from '../models/route.model';
 
+// Accent-insensitive compare: "estadio unio" should still match "Estadio Unión".
+const DIACRITICS = /[\u0300-\u036f]/g;
+const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(DIACRITICS, '');
+
 @Component({
   selector: 'app-station-picker',
   standalone: true,
@@ -117,9 +121,9 @@ export class StationPickerComponent {
   );
 
   filtered = computed(() => {
-    const q = this.inputValue().toLowerCase();
+    const q = normalize(this.inputValue());
     if (!q) return this.stations();
-    return this.stations().filter(s => s.name.toLowerCase().includes(q));
+    return this.stations().filter(s => normalize(s.name).includes(q));
   });
 
   constructor() {
