@@ -30,9 +30,15 @@ const REPO_URL = 'https://github.com/elparaquecosadeque/mi-metropolitano';
             errores del mismo dispositivo y se borra si limpias los datos del sitio.
           </p>
           <p>
+            Además, cada vez que abres el app se envía un aviso a ese mismo servidor, solo para contar cuántas
+            veces se usa: lleva la versión del app y si está instalada como app. No lleva el código de esta
+            instalación ni la página que estás viendo.
+          </p>
+          <p>
             No se envía tu ubicación ni ningún dato personal. Lo único personal que puede llegar es lo que tú
             escribas en Contacto (y tu correo, si decides ponerlo). Como en cualquier sitio web, tu dirección IP
-            es visible para el servidor que recibe el reporte.
+            es visible para el servidor que recibe el reporte, pero no se guarda. Todo lo que llega se borra a
+            los 7 días.
           </p>
           <label class="toggle">
             <input
@@ -40,10 +46,11 @@ const REPO_URL = 'https://github.com/elparaquecosadeque/mi-metropolitano';
               [checked]="telemetry.autoCapture()"
               (change)="telemetry.setAutoCapture($any($event.target).checked)"
             />
-            Enviar reportes de errores automáticos
+            Enviar reportes de errores automáticos y el aviso de uso
           </label>
           <p class="note">
-            Esto solo apaga los reportes automáticos; lo que envías tú desde Contacto siempre es voluntario.
+            Esto apaga los reportes automáticos y el aviso de uso; lo que envías tú desde Contacto siempre es
+            voluntario.
           </p>
         </section>
       }

@@ -119,6 +119,28 @@ export class TelemetryService {
       if (document.visibilityState === 'visible') void this.flush();
     });
     void this.flush();
+    this.countOpen();
+  }
+
+  /**
+   * One anonymous count per app open, for the traffic panels: no install id, no URL, no queue.
+   * Follows the same switch as automatic errors. Fire-and-forget: lost if the server is down.
+   */
+  countOpen(): void {
+    if (!this.enabled || !this.autoCapture()) return;
+    try {
+      const { app, version, env, key } = this.deps;
+      void this.deps
+        .fetch(`${this.deps.baseUrl}/hit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // CORS simple request, like /logs
+          body: JSON.stringify({ key, app, version, env, standalone: this.deps.context().standalone }),
+          keepalive: true,
+        })
+        .catch(() => {});
+    } catch {
+      /* telemetry must never break the app */
+    }
   }
 
   /** Automatic capture (ErrorHandler). Never throws. */

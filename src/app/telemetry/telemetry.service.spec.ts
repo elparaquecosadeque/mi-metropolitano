@@ -118,6 +118,35 @@ describe('TelemetryService — capture', () => {
   });
 });
 
+describe('TelemetryService — open count', () => {
+  it('sends one anonymous count as a simple text/plain POST, without ids or URL', () => {
+    const { svc, calls } = setup();
+    svc.countOpen();
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('https://m.test/hit');
+    expect(calls[0].init.headers).toEqual({ 'Content-Type': 'text/plain;charset=UTF-8' });
+    expect(JSON.parse(calls[0].init.body as string)).toEqual({
+      key: 'k', app: 'mi-metropolitano', version: '1.2.3', env: 'prod', standalone: false,
+    });
+  });
+
+  it('respects the opt-out switch and a missing server', () => {
+    const off = setup();
+    off.svc.setAutoCapture(false);
+    off.svc.countOpen();
+    expect(off.calls).toEqual([]);
+
+    const none = setup(server(), { baseUrl: '' });
+    none.svc.countOpen();
+    expect(none.calls).toEqual([]);
+  });
+
+  it('never throws when the request fails', () => {
+    const { svc } = setup(() => Promise.reject(new Error('offline')));
+    expect(() => svc.countOpen()).not.toThrow();
+  });
+});
+
 describe('TelemetryService — opt-out', () => {
   it('stops automatic capture and remembers the choice', () => {
     const { svc, queue, store, deps } = setup();

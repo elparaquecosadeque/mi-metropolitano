@@ -30,6 +30,7 @@
 | -------------- | ------ | ----------------------------------------------------- |
 | `/health`      | GET    | El cliente lo consulta antes de enviar. Debe decir `healthy`. |
 | `/logs`        | POST   | Recibe un lote de eventos.                            |
+| `/hit`         | POST   | Un aviso anónimo por apertura del app (§5b).          |
 
 Base URL en el cliente: constante `TELEMETRY_BASE_URL` (`telemetry.service.ts`). Si queda vacía, la
 telemetría está inactiva y el formulario de Contacto vuelve a abrir el `mailto:`.
@@ -100,6 +101,17 @@ Consecuencias para el receptor:
   por un dato que nunca será válido reintentaría para siempre.
 - Una `key` mal configurada (401/403) **pierde los logs en silencio** (el cliente los descarta).
 - El cuerpo de la respuesta se ignora; solo importa el status.
+
+## 5b. `POST /hit` (aperturas)
+
+Cuenta usos del app sin identificar a nadie. El cliente lo envía **una vez por apertura** (en `start()`),
+solo si el interruptor de "Nosotros" está activo, sin cola ni reintentos: si el servidor está apagado,
+ese aviso se pierde (es solo un contador).
+
+- Mismo truco que `/logs`: `Content-Type: text/plain;charset=UTF-8` con JSON en el cuerpo, y `keepalive`.
+- Cuerpo: `{"key": "metroapp-public", "app": "mi-metropolitano", "version": "1.0.22", "env": "prod", "standalone": true}`.
+  **Sin** `installId`, `url` ni nada más: no se puede contar personas, solo aperturas.
+- Respuestas: `204` si se guardó, `400` cuerpo inválido, `403` key incorrecta. El cliente ignora la respuesta.
 
 ## 6. Esquema del evento
 
@@ -352,3 +364,5 @@ localStorage.getItem('metro_telemetry_off')                      // '1' = errore
 - [ ] Los 8 casos de §11 dan lo esperado y el flujo con el cliente real (§11) funciona, incluido el
       caso "receptor apagado → vuelve → se vacía la cola".
 - [ ] Dashboard en Grafana filtrado por `env="prod"` y agrupado por `fingerprint`.
+
+> Implementación: receptor `telemetry/` + Grafana del repo `jenkins-local` (Postgres, retención 7 días).
