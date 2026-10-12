@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
-import { RouteOption, Favorite, RouteLeg } from '../models/route.model';
+import { RouteOption, Favorite, RouteLeg, formatDays } from '../models/route.model';
 import { STATIONS } from '../data/routes';
 import { StationPickerComponent } from './station-picker.component';
 import QRCode from 'qrcode';
@@ -166,6 +166,8 @@ export class PlannerComponent implements OnDestroy {
       onDestroyed: () => localStorage.setItem(TOUR_SEEN_KEY, '1'),
     }).drive();
   }
+
+  readonly formatDays = formatDays;
 
   readonly hasNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
 

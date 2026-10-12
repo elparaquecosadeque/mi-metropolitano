@@ -141,7 +141,7 @@
                   <div class="chip chip-red">
                     🔴 No disponible
                     @for (sch of leg.route.schedules; track $index) {
-                      <span class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</span>
+                      <span class="schedule">{{ formatDays(sch.days) }}: {{ sch.start }}–{{ sch.end }}</span>
                     }
                   </div>
                 }
@@ -200,7 +200,7 @@
                   <div class="chip chip-red">
                     🔴 No disponible
                     @for (sch of leg.route.schedules; track $index) {
-                      <span class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</span>
+                      <span class="schedule">{{ formatDays(sch.days) }}: {{ sch.start }}–{{ sch.end }}</span>
                     }
                   </div>
                 }

@@ -1,5 +1,14 @@
 export type DayGroup = 'lv' | 'sabado' | 'domingo' | 'viernesSabado' | 'lunes-sabado';
 
+const DAY_NAMES: Record<DayGroup, string> = {
+  'lv': 'Lun–Vie', 'sabado': 'Sáb', 'domingo': 'Dom', 'viernesSabado': 'Vie y Sáb', 'lunes-sabado': 'Lun–Sáb',
+};
+
+/** Human label for a schedule's days, e.g. ['lv'] → 'Lun–Vie'. */
+export function formatDays(days: DayGroup[]): string {
+  return days.map(d => DAY_NAMES[d]).join(', ');
+}
+
 export interface Schedule {
   days: DayGroup[];
   start: string; // HH:MM (24h, Lima time)

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ROUTES, STATION_MAP } from '../data/routes';
 import { ScheduleService } from '../services/schedule.service';
-import type { Route, RouteType, Schedule } from '../models/route.model';
+import { formatDays, type Route, type RouteType, type Schedule } from '../models/route.model';
 
 const TYPE_LABELS: Record<RouteType, string> = {
   expreso: '⚡ Expresos',
@@ -58,7 +58,7 @@ const STATUS_DOT: Record<RouteStatus, string> = {
                       <div class="variant">
                         <h4>{{ stopsLabel(variant.stations) }}</h4>
                         @for (sch of variant.schedules; track $index) {
-                          <div class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</div>
+                          <div class="schedule">{{ formatDays(sch.days) }}: {{ sch.start }}–{{ sch.end }}</div>
                         }
                         <ol class="stops">
                           @for (id of variant.stations; track id) { <li>{{ stationName(id) }}</li> }
@@ -67,7 +67,7 @@ const STATUS_DOT: Record<RouteStatus, string> = {
                     }
                   } @else {
                     @for (sch of route.schedules; track $index) {
-                      <div class="schedule">{{ sch.days.join(', ') }}: {{ sch.start }}–{{ sch.end }}</div>
+                      <div class="schedule">{{ formatDays(sch.days) }}: {{ sch.start }}–{{ sch.end }}</div>
                     }
                     <h4>{{ stopsLabel(route.stations) }}</h4>
                     <ol class="stops">
@@ -151,6 +151,7 @@ const STATUS_DOT: Record<RouteStatus, string> = {
 })
 export class RoutesPageComponent implements OnDestroy {
   private schedule = inject(ScheduleService);
+  readonly formatDays = formatDays;
 
   readonly groups = (['expreso', 'troncal', 'lechucero'] as RouteType[])
     .map(type => ({ type, label: TYPE_LABELS[type], routes: ROUTES.filter((r: Route) => r.type === type) }))
