@@ -6,7 +6,7 @@ import { ScheduleService } from './schedule.service';
 // Geographic position: index in STATIONS array (0 = northernmost, 43 = southernmost)
 const GEO_POS = new Map<string, number>(STATIONS.map((s, i) => [s.id, i]));
 
-// Tacna and Jiron de la Unión have physically separated directional platforms — no cross-direction transfers
+// Tacna and Jirón de la Unión have physically separated directional platforms — no cross-direction transfers
 // ponytail: if more split-platform stations are confirmed, add them here
 const NO_TRANSFER = new Set(['tacna', 'jiron-union']);
 
