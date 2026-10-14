@@ -16,6 +16,9 @@
 
 name = "mi-metropolitano-stage"
 compatibility_date = "2026-10-14"
+# Reachable only via the custom domain (mi-metropolitano-stage.oficinamentaldebruno.com),
+# not the account-handle-based *.workers.dev URL.
+workers_dev = false
 
 [assets]
 directory = "./deploy-stage"
