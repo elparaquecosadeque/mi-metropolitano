@@ -113,6 +113,36 @@ ese aviso se pierde (es solo un contador).
   **Sin** `installId`, `url` ni nada más: no se puede contar personas, solo aperturas.
 - Respuestas: `204` si se guardó, `400` cuerpo inválido, `403` key incorrecta. El cliente ignora la respuesta.
 
+## 5c. Nueva fuente: entorno de staging
+
+Desde octubre de 2026 hay un **tercer entorno**, además de `dev` (localhost) y `prod` (el app real):
+`staging`. Es un segundo deploy del mismo app — mismo build de producción, mismo `TELEMETRY_BASE_URL`,
+mismo `/health` y `/logs` — corriendo en Cloudflare Workers en
+`https://mi-metropolitano-stage.oficinamentaldebruno.com/mi-metropolitano/`, alimentado por la rama
+`staging` del repo (vs. `master` → GitHub Pages → prod). Se usa para probar cambios antes de que
+lleguen a producción.
+
+Lo que esto implica para el receptor y para Grafana:
+
+- **No es un servidor ni una `key` distinta** — llega por el mismo `POST /logs` que todo lo demás.
+  Lo único que lo distingue es el campo `env: "staging"` dentro de cada evento (ver tabla de `env`
+  en §6) y `env: "staging"` en el `/hit` de aperturas (§5b). El cliente lo detecta solo, por el
+  hostname (`isStagingHost()` en `telemetry.service.ts`) — nunca hay que pedírselo ni configurarlo.
+- **CORS:** el origen `https://mi-metropolitano-stage.oficinamentaldebruno.com` tiene que estar en
+  la lista permitida (§7) igual que el de producción, si no todo lo que venga de stage se pierde
+  silenciosamente (el navegador bloquea la respuesta antes de que el cliente la vea, y por eso
+  reintenta para siempre creyendo que el servidor está caído).
+- **Grafana:** agrega `env` como variable del dashboard (ya se recomendaba en §9 como label/columna)
+  con los tres valores `dev` / `staging` / `prod`, y que el dashboard por defecto filtre a
+  `env="prod"` — los paneles de "issues en producción" no deben contar nunca lo que se genera
+  probando en stage. Un dashboard aparte (o la misma variable puesta en `staging`) sirve para ver
+  justo lo contrario: solo lo que se está probando antes de salir a producción.
+- **Volumen:** bajo y en ráfagas (pruebas manuales, no tráfico real) — no hace falta rate-limit
+  especial para este origen más allá del que ya existe por IP.
+- **Quién lo opera:** el deploy de staging corre vía GitHub Actions
+  (`.github/workflows/staging.yml`) en el repo de `mi-metropolitano`; no requiere nada del lado del
+  receptor salvo lo de CORS arriba.
+
 ## 6. Esquema del evento
 
 | Campo         | Tipo                    | Notas                                                                 |
@@ -237,9 +267,9 @@ endpoints deben devolver, en **todas** las respuestas (incluidos los errores 4xx
 Access-Control-Allow-Origin: <el Origin del request, si está en tu lista permitida>
 ```
 
-Lista permitida: `https://oficinamentaldebruno.com` y, para desarrollo, `http://localhost:*`
-(cualquier puerto). Refleja el `Origin` solo si está en la lista; si no, no pongas la cabecera.
-Añade `Vary: Origin`.
+Lista permitida: `https://oficinamentaldebruno.com` (prod), `https://mi-metropolitano-stage.oficinamentaldebruno.com`
+(staging, ver §5c) y, para desarrollo, `http://localhost:*` (cualquier puerto). Refleja el `Origin`
+solo si está en la lista; si no, no pongas la cabecera. Añade `Vary: Origin`.
 
 No hace falta `Access-Control-Allow-Headers`/`-Methods` ni manejar `OPTIONS`: ninguno de los dos
 requests dispara preflight (verificado en un navegador real). Manejar `OPTIONS` igualmente es
@@ -290,6 +320,11 @@ Consultas/paneles que el contrato soporta bien: errores por `version` (¿empeor�
 `fingerprint` sumando `count`, cantidad de `installId` distintos afectados por cada `fingerprint`,
 lista de `report` recientes, errores `standalone=true` vs navegador, todo con `env="prod"`.
 
+Con `staging` como tercer valor de `env` (§5c), conviene que `env` sea una **variable del
+dashboard** (no un filtro fijo en cada query) para poder alternar entre "lo que ven los usuarios
+reales" (`prod`, el default) y "lo que se está probando ahora mismo" (`staging`) sin duplicar
+paneles.
+
 ## 10. Stacks minificados
 
 El build de producción genera **sourcemaps ocultos** (`main-XXXX.js.map` junto al bundle, sin el
@@ -331,6 +366,9 @@ curl -i -X POST $BASE/logs -H 'Content-Type: text/plain;charset=UTF-8' \
 
 # 8. origen no permitido → sin Access-Control-Allow-Origin
 curl -i -H 'Origin: https://malo.example' $BASE/health
+
+# 9. origen de staging → CORS igual que prod (§5c, §7)
+curl -i -H 'Origin: https://mi-metropolitano-stage.oficinamentaldebruno.com' $BASE/health
 ```
 
 Además: con el almacenamiento detenido, `/health` debe devolver **503** (y `/logs` un `5xx`).
@@ -357,12 +395,13 @@ localStorage.getItem('metro_telemetry_off')                      // '1' = errore
 
 - [ ] `GET /health` → 200 `{"status":"healthy"}`; 503 si no puede guardar.
 - [ ] `POST /logs` acepta `text/plain` con JSON, valida `key`, sobre y cada evento, y responde según §5.
-- [ ] CORS correcto en **todas** las respuestas, para el origen de producción y `localhost:*` (§7).
+- [ ] CORS correcto en **todas** las respuestas, para prod, **staging** (§5c) y `localhost:*` (§7).
 - [ ] Idempotente por `id`; guarda `receivedAt`.
 - [ ] Rate limit por IP y tope de 16 KB.
 - [ ] La IP **no** se guarda; los `report` se tratan como datos personales.
-- [ ] Los 8 casos de §11 dan lo esperado y el flujo con el cliente real (§11) funciona, incluido el
+- [ ] Los 9 casos de §11 dan lo esperado y el flujo con el cliente real (§11) funciona, incluido el
       caso "receptor apagado → vuelve → se vacía la cola".
-- [ ] Dashboard en Grafana filtrado por `env="prod"` y agrupado por `fingerprint`.
+- [ ] Dashboard en Grafana con variable `env` (`dev`/`staging`/`prod`), filtrado por defecto a
+      `env="prod"` y agrupado por `fingerprint` (§5c, §9).
 
 > Implementación: receptor `telemetry/` + Grafana del repo `jenkins-local` (Postgres, retención 7 días).

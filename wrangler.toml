@@ -2,6 +2,11 @@
 # Pure static-assets Worker — no script, just serves the Angular build output.
 # Deployed by .github/workflows/staging.yml on every push to the `staging` branch.
 #
+# The custom domain (mi-metropolitano-stage.oficinamentaldebruno.com) is bound
+# by hand in the Cloudflare dashboard (Workers & Pages -> mi-metropolitano-stage
+# -> Domains), not declared here — deliberately, so DNS/domain provisioning
+# doesn't depend on CI succeeding.
+#
 # Prod (GitHub Pages, master branch) is untouched by this file.
 
 name = "mi-metropolitano-stage"
@@ -11,7 +16,3 @@ compatibility_date = "2026-10-14"
 # Built by CI into deploy-stage/mi-metropolitano/ so the site is served
 # under /mi-metropolitano, same path shape as prod.
 directory = "./deploy-stage"
-
-[[routes]]
-pattern = "mi-metropolitano-stage.oficinamentaldebruno.com"
-custom_domain = true
