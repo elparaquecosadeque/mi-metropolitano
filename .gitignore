@@ -2,6 +2,8 @@
 
 # Compiled output
 /dist
+/deploy-stage
+/.wrangler
 /tmp
 /out-tsc
 /bazel-out
@@ -42,3 +44,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Personal/legal correspondence drafts — not project docs, never public
+/tramites/

@@ -1,0 +1,17 @@
+# Cloudflare Workers config for the staging deploy of mi-metropolitano.
+# Pure static-assets Worker — no script, just serves the Angular build output.
+# Deployed by .github/workflows/staging.yml on every push to the `staging` branch.
+#
+# Prod (GitHub Pages, master branch) is untouched by this file.
+
+name = "mi-metropolitano-stage"
+compatibility_date = "2026-10-14"
+
+[assets]
+# Built by CI into deploy-stage/mi-metropolitano/ so the site is served
+# under /mi-metropolitano, same path shape as prod.
+directory = "./deploy-stage"
+
+[[routes]]
+pattern = "mi-metropolitano-stage.oficinamentaldebruno.com"
+custom_domain = true

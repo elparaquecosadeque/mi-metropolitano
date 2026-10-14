@@ -1,0 +1,42 @@
+name: Deploy Staging (Cloudflare Workers)
+
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      # Same build as prod, just placed under deploy-stage/mi-metropolitano/
+      # so the Worker serves it at /mi-metropolitano, matching prod's path.
+      - name: Arrange static assets
+        run: |
+          mkdir -p deploy-stage/mi-metropolitano
+          cp -r dist/mi-metropolitano/browser/. deploy-stage/mi-metropolitano/
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

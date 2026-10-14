@@ -33,7 +33,7 @@ export interface TelemetryEvent {
   type: 'error' | 'report';
   app: string;
   version: string;
-  env: 'dev' | 'prod';
+  env: 'dev' | 'staging' | 'prod';
   installId: string;
   ts: string;
   lastSeen: string;
@@ -50,7 +50,7 @@ export interface TelemetryDeps {
   key: string;
   app: string;
   version: string;
-  env: 'dev' | 'prod';
+  env: 'dev' | 'staging' | 'prod';
   fetch: (url: string, init: RequestInit) => Promise<Response>;
   storage: Pick<Storage, 'getItem' | 'setItem'>;
   now: () => number;
@@ -354,13 +354,23 @@ export class TelemetryService {
   }
 }
 
+// ng build always produces a production bundle regardless of which branch/host deploys it,
+// so isDevMode() can't tell staging apart from prod — only the hostname can.
+export const isStagingHost = (hostname: string) => hostname.includes('-stage.');
+
+function detectEnv(): 'dev' | 'staging' | 'prod' {
+  if (isDevMode()) return 'dev';
+  if (typeof location !== 'undefined' && isStagingHost(location.hostname)) return 'staging';
+  return 'prod';
+}
+
 function browserDeps(): TelemetryDeps {
   return {
     baseUrl: TELEMETRY_BASE_URL,
     key: TELEMETRY_KEY,
     app: 'mi-metropolitano',
     version: APP_VERSION,
-    env: isDevMode() ? 'dev' : 'prod',
+    env: detectEnv(),
     fetch: (url, init) => fetch(url, init),
     storage: { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v) },
     now: () => Date.now(),

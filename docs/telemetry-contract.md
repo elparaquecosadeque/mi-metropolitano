@@ -121,7 +121,7 @@ ese aviso se pierde (es solo un contador).
 | `type`        | `"error"` \| `"report"` | `error` = automático; `report` = mensaje del formulario de Contacto.   |
 | `app`         | string                  | Siempre `"mi-metropolitano"` hoy. Úsalo como etiqueta: el servidor podrá recibir de otras apps. |
 | `version`     | string                  | Versión del build, `1.0.<n>` en producción (el CI numera el parche); `1.0.0` en builds locales. |
-| `env`         | `"dev"` \| `"prod"`     | `dev` = `ng serve`/localhost. **Filtra `env="prod"` en los dashboards.** |
+| `env`         | `"dev"` \| `"staging"` \| `"prod"` | `dev` = `ng serve`/localhost. `staging` = el deploy de Cloudflare Workers en `mi-metropolitano-stage.oficinamentaldebruno.com` (rama `staging`), detectado por el propio cliente a partir del hostname — el build ahí es un build de producción normal, así que no se puede distinguir por otra vía. **Filtra `env="prod"` en los dashboards** para no mezclar pruebas de stage con usuarios reales. |
 | `installId`   | string                  | Id aleatorio **por instalación** (en `localStorage`). No es una huella digital; se borra al limpiar datos del sitio. Sirve para "cuántos dispositivos distintos afecta esto". |
 | `ts`          | string ISO 8601 (UTC)   | Cuándo ocurrió por primera vez, **según el reloj del dispositivo** (puede estar mal).  |
 | `lastSeen`    | string ISO 8601 (UTC)   | Última repetición fundida en este evento (= `ts` si `count` es 1).     |
@@ -159,7 +159,7 @@ ese aviso se pierde (es solo un contador).
     "type":        { "enum": ["error", "report"] },
     "app":         { "type": "string", "minLength": 1, "maxLength": 64 },
     "version":     { "type": "string", "maxLength": 32 },
-    "env":         { "enum": ["dev", "prod"] },
+    "env":         { "enum": ["dev", "staging", "prod"] },
     "installId":   { "type": "string", "minLength": 1, "maxLength": 64 },
     "ts":          { "type": "string", "format": "date-time" },
     "lastSeen":    { "type": "string", "format": "date-time" },

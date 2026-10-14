@@ -1,4 +1,14 @@
-import { TelemetryDeps, TelemetryEvent, TelemetryService } from './telemetry.service';
+import { TelemetryDeps, TelemetryEvent, TelemetryService, isStagingHost } from './telemetry.service';
+
+describe('isStagingHost', () => {
+  it("flags the staging subdomain, so its errors never land in prod's metrics", () => {
+    expect(isStagingHost('mi-metropolitano-stage.oficinamentaldebruno.com')).toBe(true);
+  });
+
+  it('treats the real production host as prod', () => {
+    expect(isStagingHost('oficinamentaldebruno.com')).toBe(false);
+  });
+});
 
 const QUEUE = 'metro_telemetry_queue';
 
