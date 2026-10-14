@@ -1,11 +1,16 @@
 # Cloudflare Workers config for the staging deploy of mi-metropolitano.
 # Pure static-assets Worker — no script, just serves the Angular build output.
-# Deployed by .github/workflows/staging.yml on every push to the `staging` branch.
+#
+# Built and deployed by Cloudflare's own Workers Builds (Settings > Builds,
+# connected directly to this repo's `staging` branch) — not GitHub Actions.
+# Build command there must produce ./deploy-stage/mi-metropolitano/ from a
+# normal `npm run build` (see docs/telemetry-contract.md's staging section
+# for why the path is nested like that).
 #
 # The custom domain (mi-metropolitano-stage.oficinamentaldebruno.com) is bound
 # by hand in the Cloudflare dashboard (Workers & Pages -> mi-metropolitano-stage
 # -> Domains), not declared here — deliberately, so DNS/domain provisioning
-# doesn't depend on CI succeeding.
+# doesn't depend on a build succeeding.
 #
 # Prod (GitHub Pages, master branch) is untouched by this file.
 
@@ -13,6 +18,4 @@ name = "mi-metropolitano-stage"
 compatibility_date = "2026-10-14"
 
 [assets]
-# Built by CI into deploy-stage/mi-metropolitano/ so the site is served
-# under /mi-metropolitano, same path shape as prod.
 directory = "./deploy-stage"
