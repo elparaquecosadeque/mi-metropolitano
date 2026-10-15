@@ -5,7 +5,7 @@ import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg, formatDays } from '../models/route.model';
 import { STATIONS } from '../data/routes';
-import { gateFor } from '../data/gates';
+import { gateFor, stationMapFor } from '../data/gates';
 import { StationPickerComponent } from './station-picker.component';
 import { GateDrawerComponent, GateStep } from './gate-drawer.component';
 import QRCode from 'qrcode';
@@ -357,7 +357,8 @@ export class PlannerComponent implements OnDestroy {
       const stepLabel = opt.legs.length === 1
         ? 'Cómo abordar'
         : `Paso ${steps.length + 1}${i === 0 ? '' : ' · Trasbordo'}`;
-      steps.push({ stepLabel, stationName: leg.boardingStation.name, routeName: leg.route.name, gate });
+      const map = stationMapFor(leg.boardingStation.id, leg.alightingStation.id);
+      steps.push({ stepLabel, stationName: leg.boardingStation.name, routeName: leg.route.name, gate, map });
     });
     this.gateSteps.set(steps);
     this.gateStartIndex.set(startIndex);
