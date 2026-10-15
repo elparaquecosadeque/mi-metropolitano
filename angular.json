@@ -30,19 +30,15 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "node_modules/driver.js/dist/driver.css",
-              "node_modules/leaflet/dist/leaflet.css",
-              "src/styles.scss"
-            ]
+            "styles": ["node_modules/driver.js/dist/driver.css", "src/styles.scss"]
           },
           "configurations": {
             "production": {
-              "allowedCommonJsDependencies": ["qrcode", "leaflet"],
+              "allowedCommonJsDependencies": ["qrcode"],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "550kB",
+                  "maximumWarning": "500kB",
                   "maximumError": "1MB"
                 },
                 {
