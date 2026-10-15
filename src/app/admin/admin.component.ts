@@ -4,7 +4,7 @@ import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { STATIONS, ROUTES } from '../data/routes';
-import { GATES, type Gate } from '../data/gates';
+import { GATES, legDirection, type Gate } from '../data/gates';
 import type { Station, DayGroup } from '../models/route.model';
 
 type EditableGate = Gate & { stationId: string; routeId: string; direction: 'N' | 'S' };
@@ -128,8 +128,15 @@ function cloneRoutes(): EditableRoute[] {
             </table>
             <div class="gates-actions">
               <button class="btn-add" (click)="addGate()">+ Agregar puerta</button>
+              <button class="btn-add" (click)="generateTemplate()">Generar plantilla (todas las estaciones)</button>
               <button class="btn-download" (click)="downloadGates()">Descargar gates.json</button>
             </div>
+            <p class="hint">
+              "Generar plantilla" agrega una fila sin coordenadas por cada ruta que para en cada estación
+              (ida y vuelta = 2 puertas, norte y sur; rutas de un solo sentido = 1) — para que solo falte
+              rellenar lat/lon al caminar cada estación. Una fila sin coordenadas (0, 0) no se descarga:
+              nunca se exporta una puerta inventada.
+            </p>
             <p class="hint">
               El mapa de cada estación (la imagen, no esta tabla) se genera aparte con
               <code>npm run gen:gate-maps</code> — agrega la puerta aquí primero, descarga, y avisa para regenerar el mapa.
@@ -675,6 +682,34 @@ export class AdminComponent {
     ]);
   }
 
+  /** The one direction a non-bidirectional route runs, guessed from its first/last stop. */
+  private routeDirection(r: EditableRoute): 'N' | 'S' {
+    const stops = r.stations.length ? r.stations : (r.variants?.[0]?.stations ?? []);
+    return stops.length < 2 ? 'N' : legDirection(stops[0], stops[stops.length - 1]);
+  }
+
+  /**
+   * Adds a blank (no coordinates) row for every station+route+direction not already covered —
+   * round-trip routes get a N and a S gate, one-way routes get just the direction they run.
+   * Existing rows (real or already-placeholder) are left untouched.
+   */
+  generateTemplate() {
+    const existing = new Set(this._gates().map(g => `${g.stationId}|${g.routeId}|${g.direction}`));
+    const placeholders: EditableGate[] = [];
+    for (const st of this._stations()) {
+      for (const r of this.routesAt(st.id)) {
+        const directions: Array<'N' | 'S'> = r.bidirectional ? ['N', 'S'] : [this.routeDirection(r)];
+        for (const direction of directions) {
+          const key = `${st.id}|${r.id}|${direction}`;
+          if (existing.has(key)) continue;
+          existing.add(key);
+          placeholders.push({ stationId: st.id, routeId: r.id, direction, label: '', lat: 0, lon: 0 });
+        }
+      }
+    }
+    this._gates.update(gs => [...gs, ...placeholders]);
+  }
+
   removeGate(gi: number) {
     this._gates.update(gs => gs.filter((_, i) => i !== gi));
   }
@@ -682,6 +717,7 @@ export class AdminComponent {
   downloadGates() {
     const payload: Record<string, Gate> = {};
     for (const { stationId, routeId, direction, label, lat, lon } of this._gates()) {
+      if (lat === 0 && lon === 0) continue; // unfilled placeholder — never ship a made-up coordinate
       payload[`${stationId}|${routeId}|${direction}`] = { label, lat, lon };
     }
     this.downloadJson(payload, 'gates.json');
