@@ -474,6 +474,24 @@
   .schedule { font-size: 0.75rem; opacity: 0.9; }
 }
 
+.gate-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:hover { border-color: var(--c-boarding); color: var(--c-boarding); }
+}
+
 .transfer-divider {
   text-align: center;
   color: var(--c-accent);

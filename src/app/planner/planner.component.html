@@ -146,6 +146,10 @@
                   </div>
                 }
               }
+
+              @if (gateLabel(leg); as gate) {
+                <button class="gate-btn" (click)="openGate(opt, i)">🚪 {{ gate }}</button>
+              }
             </div>
 
             @if (!last) {
@@ -205,6 +209,10 @@
                   </div>
                 }
               }
+
+              @if (gateLabel(leg); as gate) {
+                <button class="gate-btn" (click)="openGate(opt, i)">🚪 {{ gate }}</button>
+              }
             </div>
 
             @if (!last) {
@@ -219,6 +227,10 @@
     }
   </section>
 </div>
+
+@if (gateSteps().length > 0) {
+  <app-gate-drawer [steps]="gateSteps()" [startIndex]="gateStartIndex()" (closed)="closeGate()" />
+}
 
 @if (showQr()) {
   <div class="qr-overlay" (click)="closeQr()">

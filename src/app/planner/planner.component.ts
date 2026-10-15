@@ -5,7 +5,9 @@ import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg, formatDays } from '../models/route.model';
 import { STATIONS } from '../data/routes';
+import { gateFor } from '../data/gates';
 import { StationPickerComponent } from './station-picker.component';
+import { GateDrawerComponent, GateStep } from './gate-drawer.component';
 import QRCode from 'qrcode';
 
 const FAVORITES_KEY = 'metro_favorites';
@@ -59,7 +61,7 @@ function toDatetimeLocal(d: Date): string {
 @Component({
   selector: 'app-planner',
   standalone: true,
-  imports: [FormsModule, CommonModule, StationPickerComponent],
+  imports: [FormsModule, CommonModule, StationPickerComponent, GateDrawerComponent],
   templateUrl: './planner.component.html',
   styleUrl: './planner.component.scss',
 })
@@ -78,6 +80,8 @@ export class PlannerComponent implements OnDestroy {
   favorites = signal<Favorite[]>(this.loadFavorites());
   copied = signal(false);
   showQr = signal(false);
+  gateSteps = signal<GateStep[]>([]);
+  gateStartIndex = signal(0);
 
   @ViewChild('qrCanvas') private qrCanvas?: ElementRef<HTMLCanvasElement>;
   starredKeys = signal<Set<string>>(this.loadStarred());
@@ -336,6 +340,31 @@ export class PlannerComponent implements OnDestroy {
 
   trackOption(opt: RouteOption): string {
     return opt.legs.map(l => `${l.route.id}:${l.boardingStation.id}:${l.alightingStation.id}`).join('+');
+  }
+
+  gateLabel(leg: RouteLeg): string | undefined {
+    return gateFor(leg.boardingStation.id, leg.route.id, leg.alightingStation.id)?.label;
+  }
+
+  /** Opens the gate drawer with every confirmed gate in this itinerary, scrolled to the tapped leg. */
+  openGate(opt: RouteOption, legIndex: number) {
+    const steps: GateStep[] = [];
+    let startIndex = 0;
+    opt.legs.forEach((leg, i) => {
+      const gate = gateFor(leg.boardingStation.id, leg.route.id, leg.alightingStation.id);
+      if (!gate) return;
+      if (i === legIndex) startIndex = steps.length;
+      const stepLabel = opt.legs.length === 1
+        ? 'Cómo abordar'
+        : `Paso ${steps.length + 1}${i === 0 ? '' : ' · Trasbordo'}`;
+      steps.push({ stepLabel, stationName: leg.boardingStation.name, routeName: leg.route.name, gate });
+    });
+    this.gateSteps.set(steps);
+    this.gateStartIndex.set(startIndex);
+  }
+
+  closeGate() {
+    this.gateSteps.set([]);
   }
 
   optionKey(opt: RouteOption): string {
