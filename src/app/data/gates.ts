@@ -1,5 +1,6 @@
 import { STATIONS } from './routes';
 import { GeoBounds } from './geo';
+import gatesData from './gates.json';
 
 export interface Gate {
   label: string;
@@ -8,17 +9,12 @@ export interface Gate {
 }
 
 /**
- * Boarding gate locations, hand-verified against OSM stop_position nodes — never inferred or
- * guessed. Keyed by `${boardingStationId}|${routeId}|${direction}` ('N' = northbound, 'S' =
- * southbound). Missing combinations simply show no gate — that's the expected, honest state
- * until someone confirms it (in person, or eventually via ATU/crowdsourcing).
+ * Boarding gate locations, hand-verified in person or against OSM stop_position nodes — never
+ * inferred or guessed. Keyed by `${boardingStationId}|${routeId}|${direction}` ('N' = northbound,
+ * 'S' = southbound). Missing combinations simply show no gate — that's the expected, honest state
+ * until someone confirms it. Edit via ?admin's "Puertas de embarque" panel, or this file directly.
  */
-const GATES: Record<string, Gate> = {
-  // https://www.openstreetmap.org/node/14161524948 — "Embarque Norte 2"
-  'estadio-union|expreso-1|N': { label: 'Puerta Norte 2', lat: -12.1527499, lon: -77.0196784 },
-  // https://www.openstreetmap.org/node/9442845256 — "Embarque 1 Norte"
-  'estadio-union|ruta-c|N': { label: 'Puerta Norte 1', lat: -12.1529438, lon: -77.019651 },
-};
+export const GATES: Record<string, Gate> = gatesData;
 
 export interface StationMap {
   /** Relative path under public/, served at the app's base-href regardless of environment. */

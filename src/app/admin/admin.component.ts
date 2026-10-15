@@ -4,7 +4,17 @@ import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { STATIONS, ROUTES } from '../data/routes';
+import { GATES, type Gate } from '../data/gates';
 import type { Station, DayGroup } from '../models/route.model';
+
+type EditableGate = Gate & { stationId: string; routeId: string; direction: 'N' | 'S' };
+
+function gatesToRows(): EditableGate[] {
+  return Object.entries(GATES).map(([key, g]) => {
+    const [stationId, routeId, direction] = key.split('|');
+    return { ...g, stationId, routeId, direction: direction as 'N' | 'S' };
+  });
+}
 
 type EditableSchedule = { days: DayGroup[]; start: string; end: string };
 type EditableVariant  = { stations: string[]; schedules: EditableSchedule[] };
@@ -67,6 +77,63 @@ function cloneRoutes(): EditableRoute[] {
                   (ngModelChange)="setStationName(si, $event)" />
               </div>
             }
+          </div>
+        }
+      </div>
+
+      <!-- Gates panel -->
+      <div class="panel">
+        <div class="panel-header" (click)="showGates.set(!showGates())">
+          <span>Puertas de embarque ({{ gates().length }})</span>
+          <span>{{ showGates() ? 'v' : '>' }}</span>
+        </div>
+        @if (showGates()) {
+          <div class="panel-body">
+            <table class="gates-table">
+              <thead><tr>
+                <th>Estación</th><th>Ruta</th><th>Sentido</th><th>Etiqueta</th>
+                <th>Pegar "lat, lon"</th><th>Lat (Y)</th><th>Lon (X)</th><th></th>
+              </tr></thead>
+              <tbody>
+                @for (g of gates(); track $index; let gi = $index) {
+                  <tr>
+                    <td>
+                      <select [ngModel]="g.stationId" (ngModelChange)="setGateField(gi, 'stationId', $event)">
+                        @for (st of editableStations(); track st.id) { <option [value]="st.id">{{ st.name }}</option> }
+                      </select>
+                    </td>
+                    <td>
+                      <select [ngModel]="g.routeId" (ngModelChange)="setGateField(gi, 'routeId', $event)">
+                        @for (r of routes(); track r.id) { <option [value]="r.id">{{ r.name }}</option> }
+                      </select>
+                    </td>
+                    <td>
+                      <select [ngModel]="g.direction" (ngModelChange)="setGateField(gi, 'direction', $event)">
+                        <option value="N">Norte</option>
+                        <option value="S">Sur</option>
+                      </select>
+                    </td>
+                    <td><input type="text" class="gate-label" [ngModel]="g.label"
+                      (ngModelChange)="setGateField(gi, 'label', $event)" /></td>
+                    <td><input type="text" class="gate-paste" placeholder="-12.15, -77.01"
+                      (change)="pasteLatLon(gi, $any($event.target).value); $any($event.target).value = ''" /></td>
+                    <td><input type="number" step="0.0000001" class="gate-num" [ngModel]="g.lat"
+                      (ngModelChange)="setGateNumber(gi, 'lat', $event)" /></td>
+                    <td><input type="number" step="0.0000001" class="gate-num" [ngModel]="g.lon"
+                      (ngModelChange)="setGateNumber(gi, 'lon', $event)" /></td>
+                    <td><button class="btn-icon danger" (click)="removeGate(gi)">x</button></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <div class="gates-actions">
+              <button class="btn-add" (click)="addGate()">+ Agregar puerta</button>
+              <button class="btn-download" (click)="downloadGates()">Descargar gates.json</button>
+            </div>
+            <p class="hint">
+              El mapa de cada estación (la imagen, no esta tabla) se genera aparte con
+              <code>npm run gen:gate-maps</code> — agrega la puerta aquí primero, descarga, y avisa para regenerar el mapa.
+            </p>
           </div>
         }
       </div>
@@ -332,12 +399,24 @@ function cloneRoutes(): EditableRoute[] {
     .schedule-table input[type=time] { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .3rem; font-size: .8rem; width: 90px; }
     .btn-add { background: none; border: 1px dashed #bbb; border-radius: 6px; color: #555; cursor: pointer; font-size: .8rem; padding: .3rem .7rem; }
     .btn-add:hover { background: #f5f5f5; }
+    .gates-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-bottom: .6rem; }
+    .gates-table th { background: #f0f0f0; padding: .3rem .4rem; text-align: left; font-size: .72rem; color: #555; font-weight: 600; }
+    .gates-table td { padding: .25rem .3rem; border-bottom: 1px solid #f0f0f0; }
+    .gates-table select { font-size: .8rem; border: 1px solid #ddd; border-radius: 4px; padding: .2rem; max-width: 150px; }
+    .gate-label { width: 110px; }
+    .gate-paste { width: 130px; color: #888; }
+    .gate-num { width: 100px; }
+    .gate-label, .gate-paste, .gate-num { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .35rem; font-size: .8rem; }
+    .gates-actions { display: flex; gap: .5rem; align-items: center; }
   `],
 })
 export class AdminComponent {
   readonly allDays = ALL_DAYS;
   readonly dayLabels = DAY_LABELS;
   readonly showStations = signal(false);
+  readonly showGates = signal(false);
+  private _gates = signal<EditableGate[]>(gatesToRows());
+  readonly gates = this._gates.asReadonly();
 
   private _routes = signal<EditableRoute[]>(cloneRoutes());
   readonly routes = this._routes.asReadonly();
@@ -556,13 +635,51 @@ export class AdminComponent {
     }));
   }
 
+  // ── Gates ──
+  setGateField<K extends keyof EditableGate>(gi: number, field: K, value: EditableGate[K]) {
+    this._gates.update(gs => gs.map((g, i) => i !== gi ? g : { ...g, [field]: value }));
+  }
+
+  setGateNumber(gi: number, field: 'lat' | 'lon', value: string) {
+    this.setGateField(gi, field, Number(value));
+  }
+
+  /** Splits a pasted "lat, lon" (e.g. copied from Google Maps) into the two number fields. */
+  pasteLatLon(gi: number, value: string) {
+    const parts = value.split(',').map(s => Number(s.trim()));
+    if (parts.length !== 2 || parts.some(Number.isNaN)) return;
+    this._gates.update(gs => gs.map((g, i) => i !== gi ? g : { ...g, lat: parts[0], lon: parts[1] }));
+  }
+
+  addGate() {
+    this._gates.update(gs => [
+      ...gs,
+      { stationId: this._stations()[0]?.id ?? '', routeId: this._routes()[0]?.id ?? '', direction: 'N', label: '', lat: 0, lon: 0 },
+    ]);
+  }
+
+  removeGate(gi: number) {
+    this._gates.update(gs => gs.filter((_, i) => i !== gi));
+  }
+
+  downloadGates() {
+    const payload: Record<string, Gate> = {};
+    for (const { stationId, routeId, direction, label, lat, lon } of this._gates()) {
+      payload[`${stationId}|${routeId}|${direction}`] = { label, lat, lon };
+    }
+    this.downloadJson(payload, 'gates.json');
+  }
+
   // ── Export ──
   download() {
-    const payload = { stations: this._stations(), routes: this._routes() };
+    this.downloadJson({ stations: this._stations(), routes: this._routes() }, 'routes.json');
+  }
+
+  private downloadJson(payload: unknown, filename: string) {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'routes.json';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
   }
