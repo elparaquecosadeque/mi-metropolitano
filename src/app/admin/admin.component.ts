@@ -104,7 +104,7 @@ function cloneRoutes(): EditableRoute[] {
                     </td>
                     <td>
                       <select [ngModel]="g.routeId" (ngModelChange)="setGateField(gi, 'routeId', $event)">
-                        @for (r of routes(); track r.id) { <option [value]="r.id">{{ r.name }}</option> }
+                        @for (r of routesAt(g.stationId); track r.id) { <option [value]="r.id">{{ r.name }}</option> }
                       </select>
                     </td>
                     <td>
@@ -636,8 +636,24 @@ export class AdminComponent {
   }
 
   // ── Gates ──
+  /** Routes that actually stop at this station — not every route serves every station. */
+  routesAt(stationId: string): EditableRoute[] {
+    return this._routes().filter(r =>
+      r.stations.includes(stationId) ||
+      r.stationsNorthbound?.includes(stationId) ||
+      r.variants?.some(v => v.stations.includes(stationId))
+    );
+  }
+
   setGateField<K extends keyof EditableGate>(gi: number, field: K, value: EditableGate[K]) {
-    this._gates.update(gs => gs.map((g, i) => i !== gi ? g : { ...g, [field]: value }));
+    this._gates.update(gs => gs.map((g, i) => {
+      if (i !== gi) return g;
+      const next = { ...g, [field]: value };
+      if (field === 'stationId' && !this.routesAt(next.stationId).some(r => r.id === next.routeId)) {
+        next.routeId = this.routesAt(next.stationId)[0]?.id ?? '';
+      }
+      return next;
+    }));
   }
 
   setGateNumber(gi: number, field: 'lat' | 'lon', value: string) {
@@ -652,9 +668,10 @@ export class AdminComponent {
   }
 
   addGate() {
+    const stationId = this._stations()[0]?.id ?? '';
     this._gates.update(gs => [
       ...gs,
-      { stationId: this._stations()[0]?.id ?? '', routeId: this._routes()[0]?.id ?? '', direction: 'N', label: '', lat: 0, lon: 0 },
+      { stationId, routeId: this.routesAt(stationId)[0]?.id ?? '', direction: 'N', label: '', lat: 0, lon: 0 },
     ]);
   }
 
