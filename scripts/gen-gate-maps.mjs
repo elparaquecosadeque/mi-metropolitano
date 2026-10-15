@@ -1,15 +1,25 @@
 #!/usr/bin/env node
-// Generates the static gate-map PNGs in public/gate-maps/ from real OpenStreetMap tiles.
-// One-off/occasional dev-time script — not part of the shipped app, never runs for a visitor.
+// Generates the static gate-map PNGs in public/gate-maps/ using Geoapify's Static Maps API
+// (free tier, OSM-based tiles, no API key needed in CI since this never runs for a visitor —
+// only when adding/updating a station's map). tile.openstreetmap.org's own bot-wall blocks
+// scripted downloads outright (HTTP 200 "Access blocked" placeholder) regardless of source IP,
+// which is why this doesn't fetch raw tiles anymore.
 //
-// Usage: node scripts/gen-gate-maps.mjs
+// Usage: GEOAPIFY_KEY=xxxxx node scripts/gen-gate-maps.mjs
+// Free key: https://www.geoapify.com/ -> sign up -> Static Maps API -> copy the key.
 //
 // To add a new station+direction map, add an entry to MAPS below (center = midpoint of its
-// gates, or the single gate's own coords) and re-run. Paste the printed `bounds` into
-// src/app/data/gates.ts's matching STATION_MAPS entry.
+// gates) and re-run. Paste the printed `bounds` into src/app/data/gates.ts's STATION_MAPS entry.
 import sharp from 'sharp';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+
+const KEY = process.env.GEOAPIFY_KEY;
+if (!KEY) {
+  console.error('Missing GEOAPIFY_KEY. Get a free one at https://www.geoapify.com/ and run:');
+  console.error('  GEOAPIFY_KEY=xxxxx node scripts/gen-gate-maps.mjs');
+  process.exit(1);
+}
 
 // ── config: one entry per station+direction, with every confirmed gate shown on it ─────────────
 const RADIUS_M = 150; // half-width of the square area covered; height = width * 5/4
@@ -26,8 +36,6 @@ const MAPS = [
   },
 ];
 
-// ── slippy-map tile math — the exact geographic bounds stored for runtime projection come from
-// inverse-projecting the real pixel crop below, so they can never drift from the image. ─────────
 function lonLatToWorldPx(lon, lat, zoom) {
   const n = 256 * 2 ** zoom;
   const x = ((lon + 180) / 360) * n;
@@ -40,24 +48,6 @@ function worldPxToLonLat(x, y, zoom) {
   const lon = (x / n) * 360 - 180;
   const latRad = Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n)));
   return { lon, lat: (latRad * 180) / Math.PI };
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const tileCache = new Map();
-
-async function fetchTile(z, x, y) {
-  const key = `${z}/${x}/${y}`;
-  if (tileCache.has(key)) return tileCache.get(key);
-  const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
-  // Identify clearly per OSM's tile usage policy — this is a one-off script run, not live traffic.
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'mi-metropolitano-gate-maps/1.0 (github.com/elparaquecosadeque/mi-metropolitano)' },
-  });
-  if (!res.ok) throw new Error(`tile ${key} -> HTTP ${res.status}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  tileCache.set(key, buf);
-  await sleep(200); // be polite — this script touches at most a handful of tiles per map
-  return buf;
 }
 
 function pinSvg(color, label) {
@@ -77,67 +67,46 @@ async function genMap({ key, center, gates }) {
   const widthM = RADIUS_M * 2;
   const heightM = widthM * 1.25; // 4:5
 
-  // Pick a zoom where the crop lands in a reasonable pixel range.
   let zoom = 19;
   let mpp;
   for (; zoom >= 15; zoom--) {
     mpp = (156543.03392 * Math.cos((center.lat * Math.PI) / 180)) / 2 ** zoom;
-    if (widthM / mpp >= 420) break; // stop once width would be at least ~420px
+    if (widthM / mpp >= 420) break;
   }
+  const width = Math.round(widthM / mpp);
+  const height = Math.round(heightM / mpp);
 
-  const targetW = Math.round(widthM / mpp);
-  const targetH = Math.round(heightM / mpp);
+  const url =
+    `https://maps.geoapify.com/v1/staticmap?style=osm-carto` +
+    `&center=lonlat:${center.lon},${center.lat}&zoom=${zoom}` +
+    `&width=${width}&height=${height}&format=png&apiKey=${KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Geoapify ${key} -> HTTP ${res.status}: ${await res.text()}`);
+  const base = Buffer.from(await res.arrayBuffer());
+
+  // Exact bounds of that crop, for runtime's "you are here" projection (src/app/data/geo.ts).
   const centerPx = lonLatToWorldPx(center.lon, center.lat, zoom);
-  const left = centerPx.x - targetW / 2;
-  const top = centerPx.y - targetH / 2;
-
-  const tileMinX = Math.floor(left / 256);
-  const tileMinY = Math.floor(top / 256);
-  const tileMaxX = Math.floor((left + targetW) / 256);
-  const tileMaxY = Math.floor((top + targetH) / 256);
-
-  const composites = [];
-  for (let tx = tileMinX; tx <= tileMaxX; tx++) {
-    for (let ty = tileMinY; ty <= tileMaxY; ty++) {
-      composites.push({ tx, ty, buf: await fetchTile(zoom, tx, ty) });
-    }
-  }
-  const stitchedW = (tileMaxX - tileMinX + 1) * 256;
-  const stitchedH = (tileMaxY - tileMinY + 1) * 256;
-  const stitched = sharp({ create: { width: stitchedW, height: stitchedH, channels: 4, background: '#e0e0e0' } })
-    .composite(composites.map((c) => ({ input: c.buf, left: (c.tx - tileMinX) * 256, top: (c.ty - tileMinY) * 256 })));
-
-  const cropLeft = Math.round(left - tileMinX * 256);
-  const cropTop = Math.round(top - tileMinY * 256);
-
-  // The exact geographic bounds of that crop — this is what gets stored for runtime projection,
-  // not the rough meters estimate, so the two can never disagree.
-  const topLeft = worldPxToLonLat(left, top, zoom);
-  const bottomRight = worldPxToLonLat(left + targetW, top + targetH, zoom);
+  const topLeft = worldPxToLonLat(centerPx.x - width / 2, centerPx.y - height / 2, zoom);
+  const bottomRight = worldPxToLonLat(centerPx.x + width / 2, centerPx.y + height / 2, zoom);
   const bounds = { north: topLeft.lat, south: bottomRight.lat, west: topLeft.lon, east: bottomRight.lon };
 
   const pins = gates.map((g) => {
     const px = lonLatToWorldPx(g.lon, g.lat, zoom);
-    return { input: pinSvg(g.color, g.label), left: Math.round(px.x - left - 13), top: Math.round(px.y - top - 26) };
+    return {
+      input: pinSvg(g.color, g.label),
+      left: Math.round(px.x - centerPx.x + width / 2 - 13),
+      top: Math.round(px.y - centerPx.y + height / 2 - 26),
+    };
   });
 
   const outDir = path.resolve('public/gate-maps');
   await mkdir(outDir, { recursive: true });
   const outPath = path.join(outDir, `${key}.png`);
+  await sharp(base).composite(pins).png().toFile(outPath);
 
-  await stitched
-    .extract({ left: cropLeft, top: cropTop, width: targetW, height: targetH })
-    .composite(pins)
-    .png()
-    .toFile(outPath);
-
-  console.log(`✔ ${key}.png  ${targetW}x${targetH}  zoom ${zoom}`);
+  console.log(`✔ ${key}.png  ${width}x${height}  zoom ${zoom}`);
   console.log(`  bounds: ${JSON.stringify(bounds)}`);
-  console.log(`  size: { width: ${targetW}, height: ${targetH} }`);
+  console.log(`  size: { width: ${width}, height: ${height} }`);
 }
 
 for (const map of MAPS) await genMap(map);
-
-console.log('\nOpen the PNG(s) and check they show real streets, not a blank/grey square —');
-console.log("OpenStreetMap silently serves an 'Access blocked' placeholder (HTTP 200!) to IPs it");
-console.log('has flagged, instead of a real tile, so a failed fetch will not throw here.');
