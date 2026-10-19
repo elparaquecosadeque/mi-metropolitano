@@ -667,11 +667,29 @@ export class AdminComponent {
     this.setGateField(gi, field, Number(value));
   }
 
-  /** Splits a pasted "lat, lon" (e.g. copied from Google Maps) into the two number fields. */
-  pasteLatLon(gi: number, value: string) {
+  /**
+   * Parses either the Google Maps app format ("-12.1128450, -77.0260031") or the
+   * Google Maps web share format (12°09'10.0"S 77°01'11.3"W).
+   */
+  private parseLatLon(value: string): { lat: number; lon: number } | null {
+    const dms = [...value.matchAll(/(\d{1,3})°\s*(\d{1,2})'\s*(\d{1,2}(?:\.\d+)?)"?\s*([NSEW])/g)];
+    if (dms.length === 2) {
+      const toDecimal = ([, deg, min, sec, hemi]: RegExpMatchArray) => {
+        const decimal = Number(deg) + Number(min) / 60 + Number(sec) / 3600;
+        return hemi === 'S' || hemi === 'W' ? -decimal : decimal;
+      };
+      return { lat: toDecimal(dms[0]), lon: toDecimal(dms[1]) };
+    }
     const parts = value.split(',').map(s => Number(s.trim()));
-    if (parts.length !== 2 || parts.some(Number.isNaN)) return;
-    this._gates.update(gs => gs.map((g, i) => i !== gi ? g : { ...g, lat: parts[0], lon: parts[1] }));
+    if (parts.length === 2 && parts.every(n => !Number.isNaN(n))) return { lat: parts[0], lon: parts[1] };
+    return null;
+  }
+
+  /** Splits a pasted coordinate (Google Maps app or web format) into the two number fields. */
+  pasteLatLon(gi: number, value: string) {
+    const parsed = this.parseLatLon(value);
+    if (!parsed) return;
+    this._gates.update(gs => gs.map((g, i) => i !== gi ? g : { ...g, lat: parsed.lat, lon: parsed.lon }));
   }
 
   addGate() {
@@ -688,10 +706,31 @@ export class AdminComponent {
     return stops.length < 2 ? 'N' : legDirection(stops[0], stops[stops.length - 1]);
   }
 
+  private readonly ROUTE_TYPE_RANK: Record<string, number> = { troncal: 0, expreso: 1, lechucero: 2 };
+
+  /** North-to-south by station, N before S, troncales before expresos before lechucero. */
+  private sortGates(gates: EditableGate[]): EditableGate[] {
+    const stationRank = new Map(this._stations().map((s, i) => [s.id, i]));
+    const routeById = new Map(this._routes().map(r => [r.id, r]));
+    return [...gates].sort((a, b) => {
+      const sa = stationRank.get(a.stationId) ?? 0;
+      const sb = stationRank.get(b.stationId) ?? 0;
+      if (sa !== sb) return sa - sb;
+      if (a.direction !== b.direction) return a.direction === 'N' ? -1 : 1;
+      const ra = routeById.get(a.routeId);
+      const rb = routeById.get(b.routeId);
+      const ta = this.ROUTE_TYPE_RANK[ra?.type ?? ''] ?? 3;
+      const tb = this.ROUTE_TYPE_RANK[rb?.type ?? ''] ?? 3;
+      if (ta !== tb) return ta - tb;
+      return (ra?.name ?? a.routeId).localeCompare(rb?.name ?? b.routeId);
+    });
+  }
+
   /**
    * Adds a blank (no coordinates) row for every station+route+direction not already covered —
-   * round-trip routes get a N and a S gate, one-way routes get just the direction they run.
-   * Existing rows (real or already-placeholder) are left untouched.
+   * round-trip routes get a N and a S gate, one-way routes get just the direction they run —
+   * and sorts the whole table north-to-south, Norte before Sur, troncal before expreso before
+   * lechucero. Existing rows (real or already-placeholder) are left untouched.
    */
   generateTemplate() {
     const existing = new Set(this._gates().map(g => `${g.stationId}|${g.routeId}|${g.direction}`));
@@ -703,11 +742,12 @@ export class AdminComponent {
           const key = `${st.id}|${r.id}|${direction}`;
           if (existing.has(key)) continue;
           existing.add(key);
-          placeholders.push({ stationId: st.id, routeId: r.id, direction, label: '', lat: 0, lon: 0 });
+          const label = direction === 'N' ? 'Embarque Norte ' : 'Embarque Sur ';
+          placeholders.push({ stationId: st.id, routeId: r.id, direction, label, lat: 0, lon: 0 });
         }
       }
     }
-    this._gates.update(gs => [...gs, ...placeholders]);
+    this._gates.update(gs => this.sortGates([...gs, ...placeholders]));
   }
 
   removeGate(gi: number) {

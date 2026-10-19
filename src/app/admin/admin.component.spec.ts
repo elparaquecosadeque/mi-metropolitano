@@ -1,5 +1,6 @@
 import { AdminComponent } from './admin.component';
 import { GATES } from '../data/gates';
+import { STATIONS } from '../data/routes';
 
 describe('AdminComponent — gates panel', () => {
   it('loads the existing GATES record as editable rows, split back into station/route/direction', () => {
@@ -14,6 +15,14 @@ describe('AdminComponent — gates panel', () => {
     const admin = new AdminComponent();
     admin.pasteLatLon(0, '-12.0433, -77.0283');
     expect(admin.gates()[0]).toMatchObject({ lat: -12.0433, lon: -77.0283 });
+  });
+
+  it('parses the Google Maps web DMS format (12°09\'10.0"S 77°01\'11.3"W)', () => {
+    const admin = new AdminComponent();
+    admin.pasteLatLon(0, `12°09'10.0"S 77°01'11.3"W`);
+    const row = admin.gates()[0];
+    expect(row.lat).toBeCloseTo(-12.152778, 5);
+    expect(row.lon).toBeCloseTo(-77.019806, 5);
   });
 
   it('ignores a paste that is not two valid numbers, leaving the row untouched', () => {
@@ -48,6 +57,21 @@ describe('AdminComponent — gates panel', () => {
     const countAfterFirst = rows.length;
     admin.generateTemplate();
     expect(admin.gates()).toHaveLength(countAfterFirst);
+  });
+
+  it('generateTemplate orders rows north-to-south, N before S, troncal before expreso', () => {
+    const admin = new AdminComponent();
+    admin.generateTemplate();
+    const rows = admin.gates();
+
+    const stationIndex = new Map(STATIONS.map((s, i) => [s.id, i]));
+    const ranks = rows.map(r => stationIndex.get(r.stationId) ?? 0);
+    expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+
+    const keyIndex = (k: string) => rows.findIndex(r => `${r.stationId}|${r.routeId}|${r.direction}` === k);
+    expect(keyIndex('estadio-union|ruta-c|N')).toBeLessThan(keyIndex('estadio-union|expreso-1|N'));
+    expect(keyIndex('estadio-union|expreso-1|N')).toBeLessThan(keyIndex('estadio-union|ruta-c|S'));
+    expect(keyIndex('estadio-union|ruta-c|S')).toBeLessThan(keyIndex('estadio-union|expreso-1|S'));
   });
 
   it('downloadGates skips unfilled (0, 0) placeholder rows so a blank never ships as a real gate', () => {
