@@ -95,6 +95,34 @@ describe('AdminComponent — gates panel', () => {
     blobSpy.mockRestore();
   });
 
+  it('loadGatesFile replaces the table with an uploaded gates.json', async () => {
+    const admin = new AdminComponent();
+    const payload = { 'naranjal|ruta-a|S': { label: 'Test', lat: -11.9, lon: -77.05 } };
+    const file = new File([JSON.stringify(payload)], 'gates.json', { type: 'application/json' });
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', { value: [file] });
+
+    admin.loadGatesFile({ target: input } as unknown as Event);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(admin.gates()).toHaveLength(1);
+    expect(admin.gates()[0]).toMatchObject({ stationId: 'naranjal', routeId: 'ruta-a', direction: 'S', label: 'Test' });
+  });
+
+  it('loadGatesFile reports an error on invalid JSON and leaves the table untouched', async () => {
+    const admin = new AdminComponent();
+    const before = admin.gates();
+    const file = new File(['not json'], 'gates.json', { type: 'application/json' });
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', { value: [file] });
+
+    admin.loadGatesFile({ target: input } as unknown as Event);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(admin.importError()).toContain('No se pudo leer');
+    expect(admin.gates()).toEqual(before);
+  });
+
   it('downloadGates rebuilds the same key shape the real app reads (station|route|direction)', () => {
     const admin = new AdminComponent();
     admin.setGateField(0, 'label', 'Puerta editada');

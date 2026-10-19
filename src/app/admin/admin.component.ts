@@ -9,11 +9,15 @@ import type { Station, DayGroup } from '../models/route.model';
 
 type EditableGate = Gate & { stationId: string; routeId: string; direction: 'N' | 'S' };
 
-function gatesToRows(): EditableGate[] {
-  return Object.entries(GATES).map(([key, g]) => {
+function rowsFromGatesRecord(record: Record<string, Gate>): EditableGate[] {
+  return Object.entries(record).map(([key, g]) => {
     const [stationId, routeId, direction] = key.split('|');
     return { ...g, stationId, routeId, direction: direction as 'N' | 'S' };
   });
+}
+
+function gatesToRows(): EditableGate[] {
+  return rowsFromGatesRecord(GATES);
 }
 
 type EditableSchedule = { days: DayGroup[]; start: string; end: string };
@@ -130,7 +134,18 @@ function cloneRoutes(): EditableRoute[] {
               <button class="btn-add" (click)="addGate()">+ Agregar puerta</button>
               <button class="btn-add" (click)="generateTemplate()">Generar plantilla (todas las estaciones)</button>
               <button class="btn-download" (click)="downloadGates()">Descargar gates.json</button>
+              <label class="btn-upload">
+                Cargar gates.json
+                <input type="file" accept=".json,application/json" (change)="loadGatesFile($event)" hidden />
+              </label>
             </div>
+            @if (importError()) {
+              <p class="hint error">{{ importError() }}</p>
+            }
+            <p class="hint">
+              "Cargar gates.json" reemplaza esta tabla con el contenido de un archivo descargado antes —
+              para seguir llenando puertas otro día sin perder lo ya hecho.
+            </p>
             <p class="hint">
               "Generar plantilla" agrega una fila sin coordenadas por cada ruta que para en cada estación
               (ida y vuelta = 2 puertas, norte y sur; rutas de un solo sentido = 1) — para que solo falte
@@ -414,7 +429,10 @@ function cloneRoutes(): EditableRoute[] {
     .gate-paste { width: 130px; color: #888; }
     .gate-num { width: 100px; }
     .gate-label, .gate-paste, .gate-num { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .35rem; font-size: .8rem; }
-    .gates-actions { display: flex; gap: .5rem; align-items: center; }
+    .gates-actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .btn-upload { background: #fff; color: #2c3e50; border: 1px solid #2c3e50; padding: .4rem .9rem; border-radius: 6px; cursor: pointer; font-size: .85rem; }
+    .btn-upload:hover { background: #f4f4f4; }
+    .hint.error { color: #c0392b; }
   `],
 })
 export class AdminComponent {
@@ -424,6 +442,7 @@ export class AdminComponent {
   readonly showGates = signal(false);
   private _gates = signal<EditableGate[]>(gatesToRows());
   readonly gates = this._gates.asReadonly();
+  readonly importError = signal('');
 
   private _routes = signal<EditableRoute[]>(cloneRoutes());
   readonly routes = this._routes.asReadonly();
@@ -752,6 +771,25 @@ export class AdminComponent {
 
   removeGate(gi: number) {
     this._gates.update(gs => gs.filter((_, i) => i !== gi));
+  }
+
+  /** Replaces the working table with a gates.json downloaded earlier — resuming across days. */
+  loadGatesFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        this._gates.set(this.sortGates(rowsFromGatesRecord(parsed)));
+        this.importError.set('');
+      } catch {
+        this.importError.set('No se pudo leer ese archivo como gates.json.');
+      }
+    };
+    reader.readAsText(file);
   }
 
   downloadGates() {
