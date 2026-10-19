@@ -352,7 +352,7 @@ function cloneRoutes(): EditableRoute[] {
   `,
   styles: [`
     * { box-sizing: border-box; }
-    .admin { font-family: system-ui, sans-serif; max-width: 960px; margin: 0 auto; padding: 1rem; color: #222; background: #fff; min-height: 100vh; }
+    .admin { font-family: system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 1rem; color: #222; background: #fff; min-height: 100vh; }
     header { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; border-bottom: 2px solid #ddd; padding-bottom: .75rem; }
     h1 { margin: 0; font-size: 1.4rem; }
     .subtitle { color: #666; font-size: .85rem; flex: 1; }
@@ -410,7 +410,7 @@ function cloneRoutes(): EditableRoute[] {
     .gates-table th { background: #f0f0f0; padding: .3rem .4rem; text-align: left; font-size: .72rem; color: #555; font-weight: 600; }
     .gates-table td { padding: .25rem .3rem; border-bottom: 1px solid #f0f0f0; }
     .gates-table select { font-size: .8rem; border: 1px solid #ddd; border-radius: 4px; padding: .2rem; max-width: 150px; }
-    .gate-label { width: 110px; }
+    .gate-label { width: 190px; }
     .gate-paste { width: 130px; color: #888; }
     .gate-num { width: 100px; }
     .gate-label, .gate-paste, .gate-num { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .35rem; font-size: .8rem; }
