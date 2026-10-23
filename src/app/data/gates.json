@@ -1,4 +1,637 @@
 {
-  "estadio-union|expreso-1|N": { "label": "Puerta Norte 2", "lat": -12.1527499, "lon": -77.0196784 },
-  "estadio-union|ruta-c|N": { "label": "Puerta Norte 1", "lat": -12.1529438, "lon": -77.019651 }
+  "jiron-union|ruta-a|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.049226337804086,
+    "lon": -77.03293716093386
+  },
+  "jiron-union|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.049226337804086,
+    "lon": -77.03293716093386
+  },
+  "jiron-union|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.049226337804086,
+    "lon": -77.03293716093386
+  },
+  "jiron-union|ruta-a|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.048692632835024,
+    "lon": -77.03382336068536
+  },
+  "jiron-union|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.048692632835024,
+    "lon": -77.03382336068536
+  },
+  "jiron-union|expreso-10|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.048692632835024,
+    "lon": -77.03382336068536
+  },
+  "jiron-union|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.048692632835024,
+    "lon": -77.03382336068536
+  },
+  "quilca|ruta-b|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.051403145172719,
+    "lon": -77.04232233845387
+  },
+  "quilca|ruta-d|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.051403145172719,
+    "lon": -77.04232233845387
+  },
+  "quilca|ruta-b|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.052026729253617,
+    "lon": -77.04229842703066
+  },
+  "quilca|ruta-d|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.052026729253617,
+    "lon": -77.04229842703066
+  },
+  "quilca|super-expreso-norte-comas|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.05242132946069,
+    "lon": -77.04225332412086
+  },
+  "espana|ruta-b|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.057086895239179,
+    "lon": -77.0418279739515
+  },
+  "espana|ruta-d|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.057086895239179,
+    "lon": -77.0418279739515
+  },
+  "espana|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.056749465431325,
+    "lon": -77.04185378412058
+  },
+  "espana|ruta-b|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.057240996904056,
+    "lon": -77.04184427511069
+  },
+  "espana|ruta-d|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.057240996904056,
+    "lon": -77.04184427511069
+  },
+  "espana|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.057550528418023,
+    "lon": -77.04181438965156
+  },
+  "espana|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.057550528418023,
+    "lon": -77.04181438965156
+  },
+  "espana|super-expreso-norte-comas|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.057550528418023,
+    "lon": -77.04181438965156
+  },
+  "estacion-central|ruta-a|N": {
+    "label": "Embarque Norte 3",
+    "lat": -12.058029828580555,
+    "lon": -77.0357689400971
+  },
+  "estacion-central|ruta-b|N": {
+    "label": "Embarque Norte 5",
+    "lat": -12.057136001151704,
+    "lon": -77.03585122311823
+  },
+  "estacion-central|ruta-c|N": {
+    "label": "Embarque Norte 4",
+    "lat": -12.05764159051977,
+    "lon": -77.0357984045347
+  },
+  "estacion-central|ruta-d|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.05836823512366,
+    "lon": -77.03574478962446
+  },
+  "estacion-central|expreso-1|N": {
+    "label": "Embarque Norte 4",
+    "lat": -12.05764159051977,
+    "lon": -77.0357984045347
+  },
+  "estacion-central|expreso-5|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.058649061795814,
+    "lon": -77.03569000023073
+  },
+  "estacion-central|expreso-8|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.058649061795814,
+    "lon": -77.03569000023073
+  },
+  "estacion-central|ruta-a|S": {
+    "label": "Embarque Sur 8",
+    "lat": -12.0586175,
+    "lon": -77.0360346
+  },
+  "estacion-central|ruta-b|S": {
+    "label": "Embarque Sur 10",
+    "lat": -12.0589293,
+    "lon": -77.0360034
+  },
+  "estacion-central|ruta-c|S": {
+    "label": "Embarque Sur 8",
+    "lat": -12.0586175,
+    "lon": -77.0360346
+  },
+  "estacion-central|ruta-d|S": {
+    "label": "Embarque Sur 8",
+    "lat": -12.0586175,
+    "lon": -77.0360346
+  },
+  "estacion-central|expreso-1|S": {
+    "label": "Embarque Sur 9",
+    "lat": -12.0587975,
+    "lon": -77.0360071
+  },
+  "estacion-central|expreso-12|S": {
+    "label": "Embarque Sur 9",
+    "lat": -12.0587975,
+    "lon": -77.0360071
+  },
+  "estacion-central|expreso-5|S": {
+    "label": "Embarque Sur 9",
+    "lat": -12.0587975,
+    "lon": -77.0360071
+  },
+  "estadio-nacional|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.068323213423652,
+    "lon": -77.0322400625004
+  },
+  "estadio-nacional|expreso-1|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.067861075716632,
+    "lon": -77.03240430405917
+  },
+  "estadio-nacional|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.069228656773753,
+    "lon": -77.03191295488422
+  },
+  "estadio-nacional|expreso-1|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.069705944087445,
+    "lon": -77.03174406497946
+  },
+  "estadio-nacional|expreso-12|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.069705944087445,
+    "lon": -77.03174406497946
+  },
+  "mexico|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.076236675419553,
+    "lon": -77.02919240877947
+  },
+  "mexico|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.077480667217051,
+    "lon": -77.02863952710685
+  },
+  "canada|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.081845103107431,
+    "lon": -77.02683356001995
+  },
+  "canada|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.081442681734774,
+    "lon": -77.02699681428695
+  },
+  "canada|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.081845103107431,
+    "lon": -77.02683356001995
+  },
+  "canada|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.08298123558462,
+    "lon": -77.02636919820414
+  },
+  "canada|expreso-2|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.08342023816497,
+    "lon": -77.02618553715374
+  },
+  "canada|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.08342023816497,
+    "lon": -77.02618553715374
+  },
+  "canada|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.08342023816497,
+    "lon": -77.02618553715374
+  },
+  "canada|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.08298123558462,
+    "lon": -77.02636919820414
+  },
+  "javier-prado|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.088976225379353,
+    "lon": -77.02383324940202
+  },
+  "javier-prado|expreso-1|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.088976225379353,
+    "lon": -77.02383324940202
+  },
+  "javier-prado|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.088536975362397,
+    "lon": -77.02407224626258
+  },
+  "javier-prado|expreso-8|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.088536975362397,
+    "lon": -77.02407224626258
+  },
+  "javier-prado|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.089718475055983,
+    "lon": -77.02335305097388
+  },
+  "javier-prado|expreso-1|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.089718475055983,
+    "lon": -77.02335305097388
+  },
+  "javier-prado|expreso-12|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-2|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-6|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-7|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-8|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "javier-prado|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.090161601944095,
+    "lon": -77.02308774806127
+  },
+  "aramburu|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.102305136248885,
+    "lon": -77.02729360651298
+  },
+  "aramburu|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.1034985988222,
+    "lon": -77.02741202466075
+  },
+  "aramburu|super-expreso|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.104000571895195,
+    "lon": -77.02743841982178
+  },
+  "domingo-orue|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.108016692169512,
+    "lon": -77.02657511010099
+  },
+  "domingo-orue|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.109197063326196,
+    "lon": -77.02637553460062
+  },
+  "angamos|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.112845,
+    "lon": -77.0260031
+  },
+  "angamos|expreso-1|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.112845,
+    "lon": -77.0260031
+  },
+  "angamos|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.1123697,
+    "lon": -77.0260309
+  },
+  "angamos|expreso-8|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.1123697,
+    "lon": -77.0260309
+  },
+  "angamos|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.109197063326196,
+    "lon": -77.0260031
+  },
+  "angamos|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.114292095952878,
+    "lon": -77.02604330065303
+  },
+  "angamos|expreso-1|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.114292095952878,
+    "lon": -77.02604330065303
+  },
+  "angamos|expreso-12|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-3|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-6|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-7|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-8|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|super-expreso|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.1147221,
+    "lon": -77.02607145814416
+  },
+  "angamos|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.114292095952878,
+    "lon": -77.02604330065303
+  },
+  "ricardo-palma|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.118539410270952,
+    "lon": -77.02603678703233
+  },
+  "ricardo-palma|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.118121623646237,
+    "lon": -77.02612773347998
+  },
+  "ricardo-palma|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.118539410270952,
+    "lon": -77.02603678703233
+  },
+  "ricardo-palma|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.11987014495288,
+    "lon": -77.02571506191603
+  },
+  "ricardo-palma|expreso-2|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.120322405854653,
+    "lon": -77.02552650153753
+  },
+  "ricardo-palma|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.120322405854653,
+    "lon": -77.02552650153753
+  },
+  "ricardo-palma|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.11987014495288,
+    "lon": -77.02571506191603
+  },
+  "benavides|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.12481441355615,
+    "lon": -77.02431247479709
+  },
+  "benavides|expreso-8|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.124352807114837,
+    "lon": -77.02445412747156
+  },
+  "benavides|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.125978195328571,
+    "lon": -77.02397069776816
+  },
+  "benavides|expreso-12|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "benavides|expreso-3|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "benavides|expreso-6|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "benavides|expreso-8|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "benavides|expreso-9|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "benavides|super-expreso|S": {
+    "label": "Embarque Sur ",
+    "lat": -12.126410467779735,
+    "lon": -77.02382629448344
+  },
+  "28-de-julio|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.128923352562705,
+    "lon": -77.02302162900331
+  },
+  "28-de-julio|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.130199342412913,
+    "lon": -77.02261014942712
+  },
+  "28-de-julio|expreso-1|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.130199342412913,
+    "lon": -77.02261014942712
+  },
+  "28-de-julio|expreso-2|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.130659562928466,
+    "lon": -77.02246152363298
+  },
+  "28-de-julio|expreso-3|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.130659562928466,
+    "lon": -77.02246152363298
+  },
+  "28-de-julio|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.130659562928466,
+    "lon": -77.02246152363298
+  },
+  "28-de-julio|super-expreso|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.130659562928466,
+    "lon": -77.02246152363298
+  },
+  "plaza-de-flores|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.135699142291603,
+    "lon": -77.01869454959402
+  },
+  "plaza-de-flores|expreso-5|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.135456733017556,
+    "lon": -77.01904854147895
+  },
+  "plaza-de-flores|expreso-8|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.135456733017556,
+    "lon": -77.01904854147895
+  },
+  "plaza-de-flores|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.135594673257096,
+    "lon": -77.01904561149748
+  },
+  "plaza-de-flores|expreso-5|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.136011098748549,
+    "lon": -77.01881094196627
+  },
+  "plaza-de-flores|expreso-8|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.136011098748549,
+    "lon": -77.01881094196627
+  },
+  "plaza-de-flores|expreso-9|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.136011098748549,
+    "lon": -77.01881094196627
+  },
+  "balta|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.140049207406934,
+    "lon": -77.01780017842819
+  },
+  "balta|expreso-1|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.139558996170353,
+    "lon": -77.01780091581709
+  },
+  "balta|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.140049207406934,
+    "lon": -77.01780017842819
+  },
+  "balta|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.140645228931467,
+    "lon": -77.01775707142144
+  },
+  "balta|expreso-1|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.14113589211104,
+    "lon": -77.01776015049377
+  },
+  "balta|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.140645228931467,
+    "lon": -77.01775707142144
+  },
+  "bulevar|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.14895962044827,
+    "lon": -77.02017711195855
+  },
+  "bulevar|lechucero|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.14895962044827,
+    "lon": -77.02017711195855
+  },
+  "bulevar|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.148686656398388,
+    "lon": -77.0201884315807
+  },
+  "bulevar|lechucero|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.148686656398388,
+    "lon": -77.0201884315807
+  },
+  "estadio-union|ruta-c|N": {
+    "label": "Embarque Norte 1",
+    "lat": -12.1529438,
+    "lon": -77.019651
+  },
+  "estadio-union|expreso-1|N": {
+    "label": "Embarque Norte 2",
+    "lat": -12.1527499,
+    "lon": -77.0196784
+  },
+  "estadio-union|ruta-c|S": {
+    "label": "Embarque Sur 1",
+    "lat": -12.15292953326514,
+    "lon": -77.01971430760923
+  },
+  "estadio-union|expreso-1|S": {
+    "label": "Embarque Sur 2",
+    "lat": -12.153146035964776,
+    "lon": -77.0196802359151
+  }
 }

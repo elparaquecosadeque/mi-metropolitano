@@ -1,0 +1,398 @@
+{
+  "jiron-union|N": {
+    "image": "gate-maps/jiron-union-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.047542291907073,
+      "south": -12.050910373135638,
+      "west": -77.034314475263,
+      "east": -77.03155984660471
+    }
+  },
+  "jiron-union|S": {
+    "image": "gate-maps/jiron-union-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.047008583589923,
+      "south": -12.050376671515135,
+      "west": -77.03520067501451,
+      "east": -77.03244604635621
+    }
+  },
+  "quilca|N": {
+    "image": "gate-maps/quilca-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.049719112933044,
+      "south": -12.053087166845154,
+      "west": -77.04369965278302,
+      "east": -77.04094502412472
+    }
+  },
+  "quilca|S": {
+    "image": "gate-maps/quilca-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.050540002268326,
+      "south": -12.053908045878018,
+      "west": -77.04365318990492,
+      "east": -77.04089856124662
+    }
+  },
+  "espana|N": {
+    "image": "gate-maps/espana-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.055234182707865,
+      "south": -12.05860216739081,
+      "west": -77.04321819336518,
+      "east": -77.04046356470688
+    }
+  },
+  "espana|S": {
+    "image": "gate-maps/espana-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.055711768031685,
+      "south": -12.05907974671816,
+      "west": -77.04320664671027,
+      "east": -77.04045201805198
+    }
+  },
+  "estacion-central|N": {
+    "image": "gate-maps/estacion-central-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.056280952378183,
+      "south": -12.05964892391779,
+      "west": -77.03714798585018,
+      "east": -77.03439335719189
+    }
+  },
+  "estacion-central|S": {
+    "image": "gate-maps/estacion-central-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.05709744740324,
+      "south": -12.060465408690078,
+      "west": -77.03739234766246,
+      "east": -77.03463771900417
+    }
+  },
+  "estadio-nacional|N": {
+    "image": "gate-maps/estadio-nacional-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.066408217118298,
+      "south": -12.06977606144097,
+      "west": -77.03369949760894,
+      "east": -77.03094486895064
+    }
+  },
+  "estadio-nacional|S": {
+    "image": "gate-maps/estadio-nacional-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.067783381619527,
+      "south": -12.07115120865951,
+      "west": -77.033205824261,
+      "east": -77.03045119560271
+    }
+  },
+  "mexico|N": {
+    "image": "gate-maps/mexico-N.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.07455279915794,
+      "south": -12.077920541093459,
+      "west": -77.03056972310861,
+      "east": -77.02781509445032
+    }
+  },
+  "mexico|S": {
+    "image": "gate-maps/mexico-S.png",
+    "width": 1027,
+    "height": 1284,
+    "bounds": {
+      "north": -12.075796798777205,
+      "south": -12.079164525068167,
+      "west": -77.030016841436,
+      "east": -77.0272622127777
+    }
+  },
+  "canada|N": {
+    "image": "gate-maps/canada-N.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.07996005016387,
+      "south": -12.083327724086177,
+      "west": -77.02829384258712,
+      "east": -77.02553653171981
+    }
+  },
+  "canada|S": {
+    "image": "gate-maps/canada-S.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.081516904410861,
+      "south": -12.084884558745262,
+      "west": -77.0276560231126,
+      "east": -77.02489871224529
+    }
+  },
+  "javier-prado|N": {
+    "image": "gate-maps/javier-prado-N.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.087072802866146,
+      "south": -12.090440387277516,
+      "west": -77.02533140326597,
+      "east": -77.02257409239866
+    }
+  },
+  "javier-prado|S": {
+    "image": "gate-maps/javier-prado-S.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.088256248443924,
+      "south": -12.091623817957098,
+      "west": -77.02459905495125,
+      "east": -77.02184174408394
+    }
+  },
+  "aramburu|N": {
+    "image": "gate-maps/aramburu-N.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.100621424062183,
+      "south": -12.103988837826385,
+      "west": -77.02867226194664,
+      "east": -77.02591495107933
+    }
+  },
+  "aramburu|S": {
+    "image": "gate-maps/aramburu-S.png",
+    "width": 1028,
+    "height": 1284,
+    "bounds": {
+      "north": -12.102065882273545,
+      "south": -12.105433277833452,
+      "west": -77.02880387767492,
+      "east": -77.02604656680761
+    }
+  },
+  "domingo-orue|N": {
+    "image": "gate-maps/domingo-orue-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.106331704699485,
+      "south": -12.10970166900913,
+      "west": -77.02795376553465,
+      "east": -77.02519645466734
+    }
+  },
+  "domingo-orue|S": {
+    "image": "gate-maps/domingo-orue-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.107512083302893,
+      "south": -12.110882032718047,
+      "west": -77.02775419003427,
+      "east": -77.02499687916696
+    }
+  },
+  "angamos|N": {
+    "image": "gate-maps/angamos-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.109785622097403,
+      "south": -12.113155542820104,
+      "west": -77.02739102210032,
+      "east": -77.02463371123301
+    }
+  },
+  "angamos|S": {
+    "image": "gate-maps/angamos-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.1128221514621,
+      "south": -12.116192033854997,
+      "west": -77.02743603483225,
+      "east": -77.02467872396494
+    }
+  },
+  "ricardo-palma|N": {
+    "image": "gate-maps/ricardo-palma-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.11664559458084,
+      "south": -12.12001542869734,
+      "west": -77.0274609156898,
+      "east": -77.02470360482249
+    }
+  },
+  "ricardo-palma|S": {
+    "image": "gate-maps/ricardo-palma-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.118411364175538,
+      "south": -12.12178117599162,
+      "west": -77.02699943716044,
+      "east": -77.02424212629313
+    }
+  },
+  "benavides|N": {
+    "image": "gate-maps/benavides-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.122898727448712,
+      "south": -12.126268482578189,
+      "west": -77.02576195656798,
+      "east": -77.02300464570067
+    }
+  },
+  "benavides|S": {
+    "image": "gate-maps/benavides-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.124509458842999,
+      "south": -12.127879193619878,
+      "west": -77.02527715155948,
+      "east": -77.02251984069217
+    }
+  },
+  "28-de-julio|N": {
+    "image": "gate-maps/28-de-julio-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.127238497095,
+      "south": -12.13060819738269,
+      "west": -77.02440028443696,
+      "east": -77.02164297356966
+    }
+  },
+  "28-de-julio|S": {
+    "image": "gate-maps/28-de-julio-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.128744606721007,
+      "south": -12.132114287971422,
+      "west": -77.02391449196371,
+      "east": -77.0211571810964
+    }
+  },
+  "plaza-de-flores|N": {
+    "image": "gate-maps/plaza-de-flores-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.133893124250253,
+      "south": -12.137262740405681,
+      "west": -77.02025020097014,
+      "east": -77.01749289010283
+    }
+  },
+  "plaza-de-flores|S": {
+    "image": "gate-maps/plaza-de-flores-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.134118074020781,
+      "south": -12.137487687331447,
+      "west": -77.02030693216552,
+      "east": -77.01754962129822
+    }
+  },
+  "balta|N": {
+    "image": "gate-maps/balta-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.138119315109563,
+      "south": -12.141488877811051,
+      "west": -77.0191792025563,
+      "east": -77.01642189168899
+    }
+  },
+  "balta|S": {
+    "image": "gate-maps/balta-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.139205780714173,
+      "south": -12.142575329670807,
+      "west": -77.01913726639127,
+      "east": -77.01637995552396
+    }
+  },
+  "bulevar|N": {
+    "image": "gate-maps/bulevar-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.147274891697906,
+      "south": -12.15064433853445,
+      "west": -77.02155576739219,
+      "east": -77.01879845652488
+    }
+  },
+  "bulevar|S": {
+    "image": "gate-maps/bulevar-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.147001925920275,
+      "south": -12.15037137621248,
+      "west": -77.02156708701438,
+      "east": -77.01880977614707
+    }
+  },
+  "estadio-union|N": {
+    "image": "gate-maps/estadio-union-N.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.151162145857858,
+      "south": -12.15453154347471,
+      "west": -77.02104335543365,
+      "east": -77.01828604456634
+    }
+  },
+  "estadio-union|S": {
+    "image": "gate-maps/estadio-union-S.png",
+    "width": 1028,
+    "height": 1285,
+    "bounds": {
+      "north": -12.151353081681737,
+      "south": -12.15472247688059,
+      "west": -77.02107592719581,
+      "east": -77.0183186163285
+    }
+  }
+}

@@ -8,7 +8,7 @@ describe('AdminComponent — gates panel', () => {
     const rows = admin.gates();
     expect(rows).toHaveLength(Object.keys(GATES).length);
     const row = rows.find(r => r.stationId === 'estadio-union' && r.routeId === 'expreso-1');
-    expect(row).toMatchObject({ direction: 'N', label: 'Puerta Norte 2', lat: -12.1527499, lon: -77.0196784 });
+    expect(row).toMatchObject({ direction: 'N', label: 'Embarque Norte 2', lat: -12.1527499, lon: -77.0196784 });
   });
 
   it('splits a pasted "lat, lon" into the two number fields', () => {
@@ -47,11 +47,11 @@ describe('AdminComponent — gates panel', () => {
     admin.generateTemplate();
     const rows = admin.gates();
     expect(rows.length).toBeGreaterThan(before);
-    // Estadio Unión already has expreso-1|N and ruta-c|N confirmed — template should add their S counterparts.
+    // Naranjal has no confirmed gates yet — template should add a blank row for a route that stops there.
     const addedKeys = new Set(rows.map(r => `${r.stationId}|${r.routeId}|${r.direction}`));
-    expect(addedKeys.has('estadio-union|expreso-1|S')).toBe(true);
-    expect(addedKeys.has('estadio-union|ruta-c|S')).toBe(true);
-    const newRow = rows.find(r => r.stationId === 'estadio-union' && r.routeId === 'ruta-c' && r.direction === 'S');
+    expect(addedKeys.has('naranjal|ruta-a|N')).toBe(true);
+    expect(addedKeys.has('naranjal|ruta-a|S')).toBe(true);
+    const newRow = rows.find(r => r.stationId === 'naranjal' && r.routeId === 'ruta-a' && r.direction === 'S');
     expect(newRow).toMatchObject({ lat: 0, lon: 0 });
     // Running it twice must not duplicate rows.
     const countAfterFirst = rows.length;
@@ -89,7 +89,7 @@ describe('AdminComponent — gates panel', () => {
     admin.downloadGates();
 
     const payload = JSON.parse(captured);
-    expect(payload['estadio-union|ruta-c|S']).toBeUndefined();
+    expect(payload['naranjal|ruta-a|S']).toBeUndefined();
     expect(payload['estadio-union|ruta-c|N']).toBeDefined();
     spy.mockRestore();
     blobSpy.mockRestore();
@@ -125,7 +125,8 @@ describe('AdminComponent — gates panel', () => {
 
   it('downloadGates rebuilds the same key shape the real app reads (station|route|direction)', () => {
     const admin = new AdminComponent();
-    admin.setGateField(0, 'label', 'Puerta editada');
+    const gi = admin.gates().findIndex(g => g.stationId === 'estadio-union' && g.routeId === 'expreso-1' && g.direction === 'N');
+    admin.setGateField(gi, 'label', 'Puerta editada');
     const spy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:x');
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     let captured = '';

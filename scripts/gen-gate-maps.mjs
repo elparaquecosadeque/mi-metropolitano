@@ -8,11 +8,14 @@
 // Usage: GEOAPIFY_KEY=xxxxx node scripts/gen-gate-maps.mjs
 // Free key: https://www.geoapify.com/ -> sign up -> Static Maps API -> copy the key.
 //
-// To add a new station+direction map, add an entry to MAPS below (center = midpoint of its
-// gates) and re-run. Paste the printed `bounds` into src/app/data/gates.ts's STATION_MAPS entry.
+// One station+direction map is generated per group of confirmed gates in src/app/data/gates.json
+// (gates sharing the same physical spot, i.e. the same lat/lon, are drawn as a single pin). Add a
+// gate via ?admin, download gates.json into src/app/data/, then re-run this script — it regenerates
+// every map and rewrites src/app/data/station-maps.json; nothing else needs manual edits.
 import sharp from 'sharp';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import GATES from '../src/app/data/gates.json' with { type: 'json' };
 
 const KEY = process.env.GEOAPIFY_KEY;
 if (!KEY) {
@@ -21,20 +24,49 @@ if (!KEY) {
   process.exit(1);
 }
 
-// ── config: one entry per station+direction, with every confirmed gate shown on it ─────────────
 const RADIUS_M = 150; // half-width of the square area covered; height = width * 5/4
-const MAPS = [
-  {
-    key: 'estadio-union-N',
-    center: { lat: -12.1528469, lon: -77.0196647 }, // midpoint of the two gates below
-    gates: [
-      // https://www.openstreetmap.org/node/14161524948
-      { label: '2', lat: -12.1527499, lon: -77.0196784, color: '#c0392b' }, // Expreso 1
-      // https://www.openstreetmap.org/node/9442845256
-      { label: '1', lat: -12.1529438, lon: -77.019651, color: '#1a7a3d' }, // Ruta C
-    ],
-  },
-];
+const PIN_COLORS = ['#c0392b', '#1a7a3d', '#1f6fb2', '#8e44ad', '#d68910', '#16a085'];
+
+// ── group confirmed gates into one map per station+direction ────────────────────────────────────
+function pinLabel(label, fallbackIndex) {
+  const m = label.match(/(\d+)\s*$/);
+  return m ? m[1] : String(fallbackIndex);
+}
+
+function buildMaps() {
+  const groups = new Map(); // 'stationId|direction' -> raw gate entries
+  for (const key of Object.keys(GATES)) {
+    const [stationId, , direction] = key.split('|');
+    const gk = `${stationId}|${direction}`;
+    if (!groups.has(gk)) groups.set(gk, []);
+    groups.get(gk).push(GATES[key]);
+  }
+
+  const maps = [];
+  for (const [gk, entries] of groups) {
+    const [stationId, direction] = gk.split('|');
+    const uniq = [];
+    const seen = new Set();
+    for (const e of entries) {
+      const ck = `${e.lat.toFixed(7)},${e.lon.toFixed(7)}`;
+      if (seen.has(ck)) continue;
+      seen.add(ck);
+      uniq.push(e);
+    }
+    const center = {
+      lat: uniq.reduce((s, u) => s + u.lat, 0) / uniq.length,
+      lon: uniq.reduce((s, u) => s + u.lon, 0) / uniq.length,
+    };
+    const gates = uniq.map((u, i) => ({
+      label: pinLabel(u.label, i + 1),
+      lat: u.lat,
+      lon: u.lon,
+      color: PIN_COLORS[i % PIN_COLORS.length],
+    }));
+    maps.push({ stationId, direction, key: `${stationId}-${direction}`, center, gates });
+  }
+  return maps;
+}
 
 function lonLatToWorldPx(lon, lat, zoom) {
   const n = 256 * 2 ** zoom;
@@ -63,7 +95,7 @@ function pinSvg(color, label) {
     </svg>`);
 }
 
-async function genMap({ key, center, gates }) {
+async function genMap({ stationId, direction, key, center, gates }) {
   const widthM = RADIUS_M * 2;
   const heightM = widthM * 1.25; // 4:5
 
@@ -105,8 +137,21 @@ async function genMap({ key, center, gates }) {
   await sharp(base).composite(pins).png().toFile(outPath);
 
   console.log(`✔ ${key}.png  ${width}x${height}  zoom ${zoom}`);
-  console.log(`  bounds: ${JSON.stringify(bounds)}`);
-  console.log(`  size: { width: ${width}, height: ${height} }`);
+  return { stationId, direction, image: `gate-maps/${key}.png`, width, height, bounds };
 }
 
-for (const map of MAPS) await genMap(map);
+const maps = buildMaps();
+const stationMaps = {};
+for (const map of maps) {
+  const result = await genMap(map);
+  stationMaps[`${result.stationId}|${result.direction}`] = {
+    image: result.image,
+    width: result.width,
+    height: result.height,
+    bounds: result.bounds,
+  };
+}
+
+const outFile = path.resolve('src/app/data/station-maps.json');
+await writeFile(outFile, JSON.stringify(stationMaps, null, 2) + '\n');
+console.log(`\nWrote ${Object.keys(stationMaps).length} entries to src/app/data/station-maps.json`);
