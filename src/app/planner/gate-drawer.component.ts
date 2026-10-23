@@ -1,6 +1,7 @@
 import { Component, ElementRef, input, output, viewChildren, signal, afterNextRender } from '@angular/core';
 import { Gate, StationMap } from '../data/gates';
 import { projectToPixel } from '../data/geo';
+import { GATE_LOCATION_ENABLED } from '../feature-flags';
 
 export interface GateStep {
   stepLabel: string; // "Paso 1 de 2" / "Paso 2 de 2 · Trasbordo"
@@ -46,38 +47,42 @@ type LocateState =
             @if (step.map; as map) {
               <div class="map-box">
                 <img [src]="map.image" [alt]="'Mapa de ' + step.stationName" [width]="map.width" [height]="map.height" />
-                @let state = locateStates()[i] ?? { kind: 'idle' };
-                @if (state.kind === 'found') {
-                  <div class="you-dot" [style.left.%]="(state.x / map.width) * 100" [style.top.%]="(state.y / map.height) * 100"></div>
+                @if (locationEnabled) {
+                  @let state = locateStates()[i] ?? { kind: 'idle' };
+                  @if (state.kind === 'found') {
+                    <div class="you-dot" [style.left.%]="(state.x / map.width) * 100" [style.top.%]="(state.y / map.height) * 100"></div>
+                  }
                 }
               </div>
             } @else {
               <p class="map-missing">Todavía no tenemos un mapa de esta estación — solo el nombre de la puerta.</p>
             }
 
-            @switch (locateStates()[i]?.kind ?? 'idle') {
-              @case ('priming') {
-                <div class="primer">
-                  <p>Vamos a pedirte tu ubicación solo para mostrarte qué tan lejos estás de la puerta. No se guarda ni se envía a ningún servidor.</p>
-                  <div class="primer-actions">
-                    <button class="primer-go" (click)="confirmLocate(i)">Sí, continuar</button>
-                    <button class="primer-cancel" (click)="setState(i, { kind: 'idle' })">Ahora no</button>
+            @if (locationEnabled) {
+              @switch (locateStates()[i]?.kind ?? 'idle') {
+                @case ('priming') {
+                  <div class="primer">
+                    <p>Vamos a pedirte tu ubicación solo para mostrarte qué tan lejos estás de la puerta. No se guarda ni se envía a ningún servidor.</p>
+                    <div class="primer-actions">
+                      <button class="primer-go" (click)="confirmLocate(i)">Sí, continuar</button>
+                      <button class="primer-cancel" (click)="setState(i, { kind: 'idle' })">Ahora no</button>
+                    </div>
                   </div>
-                </div>
-              }
-              @default {
-                <button class="locate-btn" [disabled]="locateStates()[i]?.kind === 'locating'" (click)="locate(i)">
-                  {{ locateStates()[i]?.kind === 'locating' ? '📍 Obteniendo tu ubicación…' : '📍 No encuentro mi puerta, guíame' }}
-                </button>
-                @switch (locateStates()[i]?.kind) {
-                  @case ('found') {
-                    <p class="locate-note ok">📍 Estás a ~{{ asFound(locateStates()[i]).meters }} m de la puerta.</p>
-                  }
-                  @case ('out-of-bounds') {
-                    <p class="locate-note">No pudimos ubicarte en este mapa — pareces estar fuera del área que cubre.</p>
-                  }
-                  @case ('error') {
-                    <p class="locate-note">{{ asError(locateStates()[i]).text }}</p>
+                }
+                @default {
+                  <button class="locate-btn" [disabled]="locateStates()[i]?.kind === 'locating'" (click)="locate(i)">
+                    {{ locateStates()[i]?.kind === 'locating' ? '📍 Obteniendo tu ubicación…' : '📍 No encuentro mi puerta, guíame' }}
+                  </button>
+                  @switch (locateStates()[i]?.kind) {
+                    @case ('found') {
+                      <p class="locate-note ok">📍 Estás a ~{{ asFound(locateStates()[i]).meters }} m de la puerta.</p>
+                    }
+                    @case ('out-of-bounds') {
+                      <p class="locate-note">No pudimos ubicarte en este mapa — pareces estar fuera del área que cubre.</p>
+                    }
+                    @case ('error') {
+                      <p class="locate-note">{{ asError(locateStates()[i]).text }}</p>
+                    }
                   }
                 }
               }
@@ -233,6 +238,7 @@ export class GateDrawerComponent {
   startIndex = input(0);
   closed = output<void>();
 
+  readonly locationEnabled = GATE_LOCATION_ENABLED;
   activeIndex = signal(0);
   locateStates = signal<Record<number, LocateState>>({});
 
