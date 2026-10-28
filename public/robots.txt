@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://oficinamentaldebruno.com/mi-metropolitano/sitemap.xml

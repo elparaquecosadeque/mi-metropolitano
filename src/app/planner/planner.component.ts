@@ -1,6 +1,7 @@
 import { Component, signal, computed, effect, afterNextRender, OnDestroy, inject, DOCUMENT, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Title, Meta } from '@angular/platform-browser';
 import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
 import { RouteOption, Favorite, RouteLeg, formatDays } from '../models/route.model';
@@ -67,6 +68,8 @@ function toDatetimeLocal(d: Date): string {
 })
 export class PlannerComponent implements OnDestroy {
   private doc = inject(DOCUMENT);
+  private titleService = inject(Title);
+  private meta = inject(Meta);
   readonly stations = STATIONS;
 
   originId = signal('');
@@ -145,12 +148,26 @@ export class PlannerComponent implements OnDestroy {
     if (from && validIds.has(from)) this.originId.set(from);
     if (to && validIds.has(to)) this.destinationId.set(to);
 
-    // Keep URL in sync with selected stations
+    // Keep URL, tab title, and meta description in sync with selected stations
     effect(() => {
       const f = this.originId();
       const t = this.destinationId();
       const search = f && t ? `?from=${f}&to=${t}` : '';
       history.replaceState(null, '', window.location.pathname + search);
+
+      if (f && t) {
+        this.titleService.setTitle(`${this.qrTitle()} | Mi Metropolitano`);
+        this.meta.updateTag({
+          name: 'description',
+          content: `Ruta en bus del Metropolitano desde ${this.stationName(f)} hasta ${this.stationName(t)}: trasbordos, horarios y puerta de embarque.`,
+        });
+      } else {
+        this.titleService.setTitle('Mi Metropolitano');
+        this.meta.updateTag({
+          name: 'description',
+          content: '¿Qué bus del Metropolitano tomo? Encuentra tu ruta entre dos estaciones de Lima, con trasbordos, horarios y la puerta de embarque exacta.',
+        });
+      }
     });
 
     // Guided tour: first visit ever, or re-launched from the menu via ?tour=1
