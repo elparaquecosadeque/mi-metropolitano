@@ -7,6 +7,8 @@ export interface Gate {
   label: string;
   lat: number;
   lon: number;
+  /** Relative path under public/ to a reference photo of the gate, if one's been uploaded. */
+  photo?: string;
 }
 
 /**

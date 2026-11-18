@@ -96,7 +96,7 @@ function cloneRoutes(): EditableRoute[] {
             <table class="gates-table">
               <thead><tr>
                 <th>Estación</th><th>Ruta</th><th>Sentido</th><th>Etiqueta</th>
-                <th>Pegar "lat, lon"</th><th>Lat (Y)</th><th>Lon (X)</th><th></th>
+                <th>Pegar "lat, lon"</th><th>Lat (Y)</th><th>Lon (X)</th><th>Foto</th><th></th>
               </tr></thead>
               <tbody>
                 @for (g of gates(); track $index; let gi = $index) {
@@ -125,6 +125,8 @@ function cloneRoutes(): EditableRoute[] {
                       (ngModelChange)="setGateNumber(gi, 'lat', $event)" /></td>
                     <td><input type="number" step="0.0000001" class="gate-num" [ngModel]="g.lon"
                       (ngModelChange)="setGateNumber(gi, 'lon', $event)" /></td>
+                    <td><input type="text" class="gate-photo" placeholder="gate-photos/xxx.jpg" [ngModel]="g.photo ?? ''"
+                      (ngModelChange)="setGateField(gi, 'photo', $event)" /></td>
                     <td><button class="btn-icon danger" (click)="removeGate(gi)">x</button></td>
                   </tr>
                 }
@@ -155,6 +157,10 @@ function cloneRoutes(): EditableRoute[] {
             <p class="hint">
               El mapa de cada estación (la imagen, no esta tabla) se genera aparte con
               <code>npm run gen:gate-maps</code> — agrega la puerta aquí primero, descarga, y avisa para regenerar el mapa.
+            </p>
+            <p class="hint">
+              "Foto" es opcional: la ruta de una imagen en <code>public/</code> (p. ej. <code>gate-photos/estadio-union-n1.jpg</code>)
+              que el usuario puede ver para confirmar que está en la puerta correcta. Sube el archivo a <code>public/gate-photos/</code> y pega la ruta aquí.
             </p>
           </div>
         }
@@ -428,7 +434,8 @@ function cloneRoutes(): EditableRoute[] {
     .gate-label { width: 190px; }
     .gate-paste { width: 130px; color: #888; }
     .gate-num { width: 100px; }
-    .gate-label, .gate-paste, .gate-num { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .35rem; font-size: .8rem; }
+    .gate-label, .gate-paste, .gate-num, .gate-photo { border: 1px solid #ddd; border-radius: 4px; padding: .2rem .35rem; font-size: .8rem; }
+    .gate-photo { width: 140px; }
     .gates-actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
     .btn-upload { background: #fff; color: #2c3e50; border: 1px solid #2c3e50; padding: .4rem .9rem; border-radius: 6px; cursor: pointer; font-size: .85rem; }
     .btn-upload:hover { background: #f4f4f4; }
@@ -794,9 +801,9 @@ export class AdminComponent {
 
   downloadGates() {
     const payload: Record<string, Gate> = {};
-    for (const { stationId, routeId, direction, label, lat, lon } of this._gates()) {
+    for (const { stationId, routeId, direction, label, lat, lon, photo } of this._gates()) {
       if (lat === 0 && lon === 0) continue; // unfilled placeholder — never ship a made-up coordinate
-      payload[`${stationId}|${routeId}|${direction}`] = { label, lat, lon };
+      payload[`${stationId}|${routeId}|${direction}`] = photo ? { label, lat, lon, photo } : { label, lat, lon };
     }
     this.downloadJson(payload, 'gates.json');
   }

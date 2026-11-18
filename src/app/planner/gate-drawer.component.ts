@@ -1,4 +1,4 @@
-import { Component, ElementRef, input, output, viewChildren, signal, afterNextRender } from '@angular/core';
+import { Component, ElementRef, OnDestroy, input, output, viewChildren, signal, afterNextRender } from '@angular/core';
 import { Gate, StationMap } from '../data/gates';
 import { projectToPixel } from '../data/geo';
 import { GATE_LOCATION_ENABLED } from '../feature-flags';
@@ -19,22 +19,28 @@ type LocateState =
   | { kind: 'out-of-bounds' }
   | { kind: 'error'; text: string };
 
+/** Close enough to the confirmed gate's coordinates to call it "arrived" instead of showing a distance. */
+const ARRIVAL_METERS = 15;
+
 /**
- * Right-side drawer showing where to board, one card per leg that has a confirmed gate.
- * The map is a pre-rendered static image (scripts/gen-gate-maps.mjs) instead of a live tile
- * library — no third-party map requests from the visitor's browser, works offline once cached
- * by the PWA, and the "you are here" dot is just linear interpolation against the image's known
- * bounds (src/app/data/geo.ts) — accurate enough at this ~150m scale.
+ * Full-screen page showing where to board, one card per leg that has a confirmed gate. The map
+ * is a pre-rendered static image (scripts/gen-gate-maps.mjs) instead of a live tile library — no
+ * third-party map requests from the visitor's browser, works offline once cached by the PWA, and
+ * the "you are here" dot is just linear interpolation against the image's known bounds
+ * (src/app/data/geo.ts) — accurate enough at this ~150m scale.
+ *
+ * Pushes a history entry on open so the device/browser back action closes it like any other page
+ * (there's no Router in this app — see app.ts — so this is the one place that talks to History
+ * directly).
  */
 @Component({
   selector: 'app-gate-drawer',
   standalone: true,
   template: `
-    <div class="backdrop" (click)="closed.emit()"></div>
-    <div class="drawer">
-      <div class="drawer-head">
+    <div class="page">
+      <div class="page-head">
+        <button class="back-btn" (click)="goBack()" aria-label="Volver">← Volver</button>
         <span class="label">Cómo llegar a tu bus</span>
-        <button class="drawer-close" (click)="closed.emit()" aria-label="Cerrar">✕</button>
       </div>
 
       <div class="deck" #deck (scroll)="onScroll()">
@@ -58,6 +64,15 @@ type LocateState =
               <p class="map-missing">Todavía no tenemos un mapa de esta estación — solo el nombre de la puerta.</p>
             }
 
+            @if (step.gate.photo) {
+              <button class="photo-btn" (click)="togglePhoto(i)">
+                {{ photoOpen()[i] ? 'Ocultar foto' : '📷 Ver foto del embarque' }}
+              </button>
+              @if (photoOpen()[i]) {
+                <img class="gate-photo" [src]="step.gate.photo" [alt]="'Foto de la ' + step.gate.label" />
+              }
+            }
+
             @if (locationEnabled) {
               @switch (locateStates()[i]?.kind ?? 'idle') {
                 @case ('priming') {
@@ -75,7 +90,11 @@ type LocateState =
                   </button>
                   @switch (locateStates()[i]?.kind) {
                     @case ('found') {
-                      <p class="locate-note ok">📍 Estás a ~{{ asFound(locateStates()[i]).meters }} m de la puerta.</p>
+                      @if (asFound(locateStates()[i]).meters <= arrivalMeters) {
+                        <p class="locate-note ok">✅ ¡Llegaste! Estás en la puerta.</p>
+                      } @else {
+                        <p class="locate-note ok">📍 Estás a ~{{ asFound(locateStates()[i]).meters }} m de la puerta.</p>
+                      }
                     }
                     @case ('out-of-bounds') {
                       <p class="locate-note">No pudimos ubicarte en este mapa — pareces estar fuera del área que cubre.</p>
@@ -104,34 +123,28 @@ type LocateState =
   `,
   styles: [`
     :host { position: fixed; inset: 0; z-index: 900; }
-    .backdrop {
+    .page {
       position: absolute; inset: 0;
-      background: color-mix(in srgb, #000 42%, transparent);
-    }
-    .drawer {
-      position: absolute; top: 0; right: 0; bottom: 0;
-      width: min(87%, 360px);
       background: var(--c-surface);
-      border-left: 1px solid var(--c-border);
-      box-shadow: -18px 0 40px -14px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
-      animation: slide-in 0.35s cubic-bezier(.2,.8,.2,1);
+      animation: slide-in 0.3s cubic-bezier(.2,.8,.2,1);
     }
     @keyframes slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
-    @media (prefers-reduced-motion: reduce) { .drawer { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .page { animation: none; } }
 
-    .drawer-head {
-      display: flex; align-items: center; justify-content: space-between;
+    .page-head {
+      display: flex; align-items: center; gap: 0.6rem;
       padding: 0.8rem 0.9rem 0.6rem;
       border-bottom: 1px solid var(--c-border);
     }
-    .drawer-head .label { font-size: 0.78rem; font-weight: 700; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .drawer-close {
+    .page-head .label { font-size: 0.78rem; font-weight: 700; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .back-btn {
       background: var(--c-surface-2); border: 1px solid var(--c-border); color: var(--c-text);
-      width: 30px; height: 30px; border-radius: 50%; font-size: 0.9rem; line-height: 1;
+      font: inherit; font-weight: 600; font-size: 0.85rem;
+      padding: 0.4rem 0.7rem; border-radius: 8px; line-height: 1;
     }
-    .drawer-close:hover { border-color: var(--c-danger); color: var(--c-danger); }
+    .back-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
 
     .deck {
       flex: 1;
@@ -150,6 +163,9 @@ type LocateState =
       flex-direction: column;
       gap: 0.6rem;
       overflow-y: auto;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
     }
     .step { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--c-text-muted); }
     .step.transfer { color: var(--c-accent); }
@@ -178,6 +194,19 @@ type LocateState =
       border: 2px solid #fff;
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-boarding) 35%, transparent);
     }
+
+    .photo-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%;
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border);
+      color: var(--c-text);
+      font: inherit; font-weight: 600; font-size: 0.88rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+    }
+    .photo-btn:hover { border-color: var(--c-primary); }
+    .gate-photo { width: 100%; border-radius: 12px; border: 1px solid var(--c-border); display: block; }
 
     .primer {
       background: var(--c-surface-2);
@@ -223,7 +252,7 @@ type LocateState =
       border: 1px solid var(--c-border); color: var(--c-text);
       font-size: 0.9rem; line-height: 1;
     }
-    .chevron.prev { left: calc(min(87%, 360px) - 36px); }
+    .chevron.prev { left: 6px; }
     .chevron.next { right: 6px; }
     .chevron:disabled { opacity: 0.25; }
     @media (hover: none) { .chevron { display: none; } }
@@ -233,23 +262,40 @@ type LocateState =
     .dot.active { background: var(--c-primary); width: 18px; border-radius: 4px; }
   `],
 })
-export class GateDrawerComponent {
+export class GateDrawerComponent implements OnDestroy {
   steps = input.required<GateStep[]>();
   startIndex = input(0);
   closed = output<void>();
 
   readonly locationEnabled = GATE_LOCATION_ENABLED;
+  readonly arrivalMeters = ARRIVAL_METERS;
   activeIndex = signal(0);
   locateStates = signal<Record<number, LocateState>>({});
+  photoOpen = signal<Record<number, boolean>>({});
 
   private deckEl = viewChildren<ElementRef<HTMLDivElement>>('deck');
+  private readonly onPopState = () => this.closed.emit();
 
   constructor() {
+    // No Router in this app, so a real page needs to push its own history entry to make the
+    // device/browser back action close it instead of leaving the whole app.
+    history.pushState({ gateView: true }, '');
+    window.addEventListener('popstate', this.onPopState);
+
     afterNextRender(() => {
       this.activeIndex.set(this.startIndex());
       const deck = this.deckEl()[0]?.nativeElement;
       if (deck) deck.scrollLeft = this.startIndex() * deck.clientWidth;
     });
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('popstate', this.onPopState);
+  }
+
+  /** Undoes the pushState from open — closing follows from the resulting popstate event. */
+  goBack() {
+    history.back();
   }
 
   // Template type-narrowing helpers (Angular's control-flow syntax doesn't narrow union locals).
@@ -258,6 +304,10 @@ export class GateDrawerComponent {
 
   setState(i: number, state: LocateState) {
     this.locateStates.update((s) => ({ ...s, [i]: state }));
+  }
+
+  togglePhoto(i: number) {
+    this.photoOpen.update((s) => ({ ...s, [i]: !s[i] }));
   }
 
   onScroll() {
