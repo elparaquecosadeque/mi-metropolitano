@@ -103,9 +103,8 @@ describe('AdminComponent — gates panel', () => {
     Object.defineProperty(input, 'files', { value: [file] });
 
     admin.loadGatesFile({ target: input } as unknown as Event);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await vi.waitFor(() => expect(admin.gates()).toHaveLength(1));
 
-    expect(admin.gates()).toHaveLength(1);
     expect(admin.gates()[0]).toMatchObject({ stationId: 'naranjal', routeId: 'ruta-a', direction: 'S', label: 'Test' });
   });
 
@@ -117,9 +116,8 @@ describe('AdminComponent — gates panel', () => {
     Object.defineProperty(input, 'files', { value: [file] });
 
     admin.loadGatesFile({ target: input } as unknown as Event);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await vi.waitFor(() => expect(admin.importError()).toContain('No se pudo leer'));
 
-    expect(admin.importError()).toContain('No se pudo leer');
     expect(admin.gates()).toEqual(before);
   });
 
