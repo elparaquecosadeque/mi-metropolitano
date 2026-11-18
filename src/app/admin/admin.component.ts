@@ -159,8 +159,10 @@ function cloneRoutes(): EditableRoute[] {
               <code>npm run gen:gate-maps</code> — agrega la puerta aquí primero, descarga, y avisa para regenerar el mapa.
             </p>
             <p class="hint">
-              "Foto" es opcional: la ruta de una imagen en <code>public/</code> (p. ej. <code>gate-photos/estadio-union-n1.jpg</code>)
-              que el usuario puede ver para confirmar que está en la puerta correcta. Sube el archivo a <code>public/gate-photos/</code> y pega la ruta aquí.
+              "Foto" casi nunca hace falta llenarla: toda puerta con etiqueta "Embarque Norte 1/2/3" o
+              "Embarque Sur 1/2/3" ya muestra automáticamente la foto de esa señalización (son iguales
+              en toda la red — ver <code>genericPhotoFor</code> en <code>gates.ts</code>). Usa este campo
+              solo para una puerta que necesite una foto distinta a la estándar.
             </p>
           </div>
         }

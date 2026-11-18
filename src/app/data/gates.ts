@@ -44,9 +44,24 @@ export function legDirection(boardingStationId: string, alightingStationId: stri
   return boarding > alighting ? 'N' : 'S';
 }
 
+// The Metropolitano's boarding-gate signage is standardized system-wide — "Embarque Norte 1",
+// "Embarque Sur 2", etc. look the same at every station — so one reference photo per
+// label covers every gate with that label, with no per-row photo to fill in ?admin.
+// A gate's own `photo` (set by hand in ?admin) always wins over this fallback.
+const GENERIC_GATE_PHOTOS = new Set(['norte-1', 'norte-2', 'norte-3', 'sur-1', 'sur-2', 'sur-3']);
+
+function genericPhotoFor(label: string): string | undefined {
+  const match = /^embarque\s+(norte|sur)\s+(\d+)\s*$/i.exec(label.trim());
+  if (!match) return undefined;
+  const key = `${match[1].toLowerCase()}-${match[2]}`;
+  return GENERIC_GATE_PHOTOS.has(key) ? `embarques/embarque-${key}.webp` : undefined;
+}
+
 export function gateFor(boardingStationId: string, routeId: string, alightingStationId: string): Gate | undefined {
   const direction = legDirection(boardingStationId, alightingStationId);
-  return GATES[`${boardingStationId}|${routeId}|${direction}`];
+  const gate = GATES[`${boardingStationId}|${routeId}|${direction}`];
+  if (!gate) return undefined;
+  return gate.photo ? gate : { ...gate, photo: genericPhotoFor(gate.label) };
 }
 
 export function stationMapFor(boardingStationId: string, alightingStationId: string): StationMap | undefined {

@@ -9,7 +9,8 @@
     "build": "ng build --base-href /mi-metropolitano/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "gen:gate-maps": "node scripts/gen-gate-maps.mjs"
+    "gen:gate-maps": "node scripts/gen-gate-maps.mjs",
+    "optimize:gate-photos": "node scripts/optimize-gate-photos.mjs"
   },
   "private": true,
   "packageManager": "npm@11.16.0",
