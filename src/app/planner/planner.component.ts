@@ -4,55 +4,18 @@ import { CommonModule } from '@angular/common';
 import { Title, Meta } from '@angular/platform-browser';
 import { driver, type DriveStep } from 'driver.js';
 import { RoutingService } from '../services/routing.service';
-import { RouteOption, Favorite, RouteLeg, formatDays } from '../models/route.model';
+import { RouteOption, Favorite, RouteLeg, DayGroup } from '../models/route.model';
 import { STATIONS } from '../data/routes';
 import { gateFor, stationMapFor } from '../data/gates';
 import { StationPickerComponent } from './station-picker.component';
 import { GateDrawerComponent, GateStep } from './gate-drawer.component';
+import { I18nService } from '../i18n/i18n.service';
 import QRCode from 'qrcode';
 
 const FAVORITES_KEY = 'metro_favorites';
 const STARRED_KEY = 'metro_starred';
 const TOUR_SEEN_KEY = 'metro_tour_seen';
 const THRESHOLD = 30;
-
-const TOUR_STEPS: DriveStep[] = [
-  {
-    element: '.time-selector',
-    popover: {
-      title: '🕐 Elige el momento',
-      description: 'Por defecto se consulta para ahora mismo, pero puedes cambiar la fecha y hora para planear un viaje futuro.',
-    },
-  },
-  {
-    element: '.toggle-group',
-    popover: {
-      title: 'Directo o con trasbordos',
-      description: '"Directo" solo muestra rutas sin cambios de bus. "Con trasbordos" también busca combinaciones de hasta 2 rutas.',
-    },
-  },
-  {
-    element: '#origin-picker',
-    popover: {
-      title: 'Desde dónde sales',
-      description: 'Escribe o busca tu estación de origen.',
-    },
-  },
-  {
-    element: '.swap-btn',
-    popover: {
-      title: 'Intercambiar',
-      description: '¿Ruta de vuelta? Este botón invierte origen y destino al instante.',
-    },
-  },
-  {
-    element: '#destination-picker',
-    popover: {
-      title: 'A dónde vas',
-      description: 'Escribe o busca tu estación de destino y verás las rutas disponibles.',
-    },
-  },
-];
 
 function toDatetimeLocal(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -70,6 +33,7 @@ export class PlannerComponent implements OnDestroy {
   private doc = inject(DOCUMENT);
   private titleService = inject(Title);
   private meta = inject(Meta);
+  readonly i18n = inject(I18nService);
   readonly stations = STATIONS;
 
   originId = signal('');
@@ -157,16 +121,10 @@ export class PlannerComponent implements OnDestroy {
 
       if (f && t) {
         this.titleService.setTitle(`${this.qrTitle()} | Mi Metropolitano`);
-        this.meta.updateTag({
-          name: 'description',
-          content: `Ruta en bus del Metropolitano desde ${this.stationName(f)} hasta ${this.stationName(t)}: trasbordos, horarios y puerta de embarque.`,
-        });
+        this.meta.updateTag({ name: 'description', content: this.routeMetaDescription(f, t) });
       } else {
         this.titleService.setTitle('Mi Metropolitano');
-        this.meta.updateTag({
-          name: 'description',
-          content: '¿Qué bus del Metropolitano tomo? Encuentra tu ruta entre dos estaciones de Lima, con trasbordos, horarios y la puerta de embarque exacta.',
-        });
+        this.meta.updateTag({ name: 'description', content: this.defaultMetaDescription() });
       }
     });
 
@@ -176,19 +134,56 @@ export class PlannerComponent implements OnDestroy {
     }
   }
 
+  // Kept as plain functions instead of translation keys: the meta description needs the station
+  // names spliced in, which the simple {param} substitution in I18nService.t can't do cleanly
+  // across every language's word order.
+  private routeMetaDescription(fromId: string, toId: string): string {
+    const from = this.stationName(fromId);
+    const to = this.stationName(toId);
+    const byLang: Record<string, string> = {
+      es: `Ruta en bus del Metropolitano desde ${from} hasta ${to}: trasbordos, horarios y puerta de embarque.`,
+      en: `Metropolitano bus route from ${from} to ${to}: transfers, schedules and boarding gate.`,
+      pt: `Rota de ônibus do Metropolitano de ${from} até ${to}: baldeações, horários e portão de embarque.`,
+      fr: `Trajet en bus du Metropolitano de ${from} à ${to} : correspondances, horaires et quai d'embarquement.`,
+      zh: `Metropolitano 公交线路：从 ${from} 到 ${to}，含换乘、时间表与登车口信息。`,
+    };
+    return byLang[this.i18n.lang()] ?? byLang['es'];
+  }
+
+  private defaultMetaDescription(): string {
+    const byLang: Record<string, string> = {
+      es: '¿Qué bus del Metropolitano tomo? Encuentra tu ruta entre dos estaciones de Lima, con trasbordos, horarios y la puerta de embarque exacta.',
+      en: 'Which Metropolitano bus do I take? Find your route between two Lima stations, with transfers, schedules and the exact boarding gate.',
+      pt: 'Qual ônibus do Metropolitano eu pego? Encontre sua rota entre duas estações de Lima, com baldeações, horários e o portão de embarque exato.',
+      fr: 'Quel bus du Metropolitano prendre ? Trouvez votre trajet entre deux stations de Lima, avec correspondances, horaires et le quai d\'embarquement exact.',
+      zh: '该坐哪辆 Metropolitano 公交？查找利马两个车站之间的线路，包含换乘、时间表和准确的登车口。',
+    };
+    return byLang[this.i18n.lang()] ?? byLang['es'];
+  }
+
   private startTour() {
+    const t = this.i18n.t;
+    const steps: DriveStep[] = [
+      { element: '.time-selector', popover: { title: t('tour.step1.title'), description: t('tour.step1.desc') } },
+      { element: '.toggle-group', popover: { title: t('tour.step2.title'), description: t('tour.step2.desc') } },
+      { element: '#origin-picker', popover: { title: t('tour.step3.title'), description: t('tour.step3.desc') } },
+      { element: '.swap-btn', popover: { title: t('tour.step4.title'), description: t('tour.step4.desc') } },
+      { element: '#destination-picker', popover: { title: t('tour.step5.title'), description: t('tour.step5.desc') } },
+    ];
     driver({
       showProgress: true,
-      progressText: '{{current}} de {{total}}',
-      nextBtnText: 'Siguiente',
-      prevBtnText: 'Anterior',
-      doneBtnText: 'Listo',
-      steps: TOUR_STEPS,
+      progressText: t('tour.progress'),
+      nextBtnText: t('tour.next'),
+      prevBtnText: t('tour.prev'),
+      doneBtnText: t('tour.done'),
+      steps,
       onDestroyed: () => localStorage.setItem(TOUR_SEEN_KEY, '1'),
     }).drive();
   }
 
-  readonly formatDays = formatDays;
+  formatDays(days: DayGroup[]): string {
+    return days.map((d) => this.i18n.t(`days.${d}`)).join(', ');
+  }
 
   readonly hasNativeShare = typeof navigator !== 'undefined' && 'share' in navigator;
 
@@ -197,7 +192,7 @@ export class PlannerComponent implements OnDestroy {
   }
 
   qrTitle(): string {
-    return `Ruta Metropolitano ${this.stationName(this.originId())} → ${this.stationName(this.destinationId())}`;
+    return `${this.i18n.t('planner.routeTitlePrefix')} ${this.stationName(this.originId())} → ${this.stationName(this.destinationId())}`;
   }
 
   private async renderQrToCanvas(canvas: HTMLCanvasElement): Promise<void> {
@@ -348,11 +343,11 @@ export class PlannerComponent implements OnDestroy {
   }
 
   formatTime(date: Date): string {
-    return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return date.toLocaleTimeString(this.i18n.locale, { hour: '2-digit', minute: '2-digit', hour12: true });
   }
 
   formatDate(date: Date): string {
-    return date.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
+    return date.toLocaleDateString(this.i18n.locale, { weekday: 'short', day: '2-digit', month: 'short' });
   }
 
   trackOption(opt: RouteOption): string {
@@ -371,11 +366,12 @@ export class PlannerComponent implements OnDestroy {
       const gate = gateFor(leg.boardingStation.id, leg.route.id, leg.alightingStation.id);
       if (!gate) return;
       if (i === legIndex) startIndex = steps.length;
+      const isTransfer = opt.legs.length > 1 && i > 0;
       const stepLabel = opt.legs.length === 1
-        ? 'Cómo abordar'
-        : `Paso ${steps.length + 1}${i === 0 ? '' : ' · Trasbordo'}`;
+        ? this.i18n.t('gate.step.board')
+        : this.i18n.t('gate.step.n', { n: steps.length + 1 }) + (isTransfer ? this.i18n.t('gate.step.transferSuffix') : '');
       const map = stationMapFor(leg.boardingStation.id, leg.alightingStation.id);
-      steps.push({ stepLabel, stationName: leg.boardingStation.name, routeName: leg.route.name, gate, map });
+      steps.push({ stepLabel, isTransfer, stationName: leg.boardingStation.name, routeName: leg.route.name, gate, map });
     });
     this.gateSteps.set(steps);
     this.gateStartIndex.set(startIndex);

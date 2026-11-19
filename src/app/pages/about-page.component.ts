@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { TELEMETRY } from '../telemetry/telemetry.service';
+import { I18nService } from '../i18n/i18n.service';
 
 const REPO_URL = 'https://github.com/elparaquecosadeque/mi-metropolitano';
 
@@ -8,50 +9,26 @@ const REPO_URL = 'https://github.com/elparaquecosadeque/mi-metropolitano';
   standalone: true,
   template: `
     <div class="page">
-      <h2>Nosotros</h2>
-      <p>
-        Mi Metropolitano es una iniciativa ciudadana, independiente y sin fines de lucro,
-        creada para ayudar a resolver una pregunta simple: <strong>¿qué bus tomo ahora?</strong>
-      </p>
-      <p>
-        No está afiliada a Protransporte ni a ninguna empresa operadora del Metropolitano.
-        Todo el código es abierto — cualquiera puede revisarlo, corregirlo o mejorarlo.
-      </p>
-      <a class="repo-link" [href]="repoUrl" target="_blank" rel="noopener">💻 Ver el código en GitHub</a>
+      <h2>{{ i18n.t('about.title') }}</h2>
+      <p [innerHTML]="i18n.t('about.intro1')"></p>
+      <p>{{ i18n.t('about.intro2') }}</p>
+      <a class="repo-link" [href]="repoUrl" target="_blank" rel="noopener">{{ i18n.t('about.repoLink') }}</a>
 
       @if (telemetry.enabled) {
         <section class="privacy">
-          <h3>Privacidad y reportes de errores</h3>
-          <p>
-            Si el app se rompe, puede enviar un reporte automático a un servidor propio del autor para poder
-            arreglarlo. El reporte incluye: el mensaje del error, la versión del app, la página donde ocurrió,
-            tu tipo de dispositivo y navegador (idioma, zona horaria, tamaño de pantalla, si está instalada como
-            app y si tienes conexión) y un código aleatorio de esta instalación, que solo sirve para agrupar
-            errores del mismo dispositivo y se borra si limpias los datos del sitio.
-          </p>
-          <p>
-            Además, cada vez que abres el app se envía un aviso a ese mismo servidor, solo para contar cuántas
-            veces se usa: lleva la versión del app y si está instalada como app. No lleva el código de esta
-            instalación ni la página que estás viendo.
-          </p>
-          <p>
-            No se envía tu ubicación ni ningún dato personal. Lo único personal que puede llegar es lo que tú
-            escribas en Contacto (y tu correo, si decides ponerlo). Como en cualquier sitio web, tu dirección IP
-            es visible para el servidor que recibe el reporte, pero no se guarda. Todo lo que llega se borra a
-            los 7 días.
-          </p>
+          <h3>{{ i18n.t('about.privacyTitle') }}</h3>
+          <p>{{ i18n.t('about.privacyP1') }}</p>
+          <p>{{ i18n.t('about.privacyP2') }}</p>
+          <p>{{ i18n.t('about.privacyP3') }}</p>
           <label class="toggle">
             <input
               type="checkbox"
               [checked]="telemetry.autoCapture()"
               (change)="telemetry.setAutoCapture($any($event.target).checked)"
             />
-            Enviar reportes de errores automáticos y el aviso de uso
+            {{ i18n.t('about.toggleLabel') }}
           </label>
-          <p class="note">
-            Esto apaga los reportes automáticos y el aviso de uso; lo que envías tú desde Contacto siempre es
-            voluntario.
-          </p>
+          <p class="note">{{ i18n.t('about.note') }}</p>
         </section>
       }
 
@@ -88,4 +65,5 @@ const REPO_URL = 'https://github.com/elparaquecosadeque/mi-metropolitano';
 export class AboutPageComponent {
   readonly repoUrl = REPO_URL;
   readonly telemetry = inject(TELEMETRY);
+  readonly i18n = inject(I18nService);
 }

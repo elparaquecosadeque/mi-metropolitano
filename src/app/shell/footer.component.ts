@@ -1,16 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { APP_VERSION } from '../version';
+import { I18nService } from '../i18n/i18n.service';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
   template: `
     <footer>
-      Mi Metropolitano v{{ version }}.
+      {{ i18n.t('footer.version', { v: version }) }}
       @if (updateAvailable()) {
-        hay una nueva versión,
-        <button (click)="update()">actualiza aquí</button>
+        {{ i18n.t('footer.newVersion') }}
+        <button (click)="update()">{{ i18n.t('footer.updateHere') }}</button>
       }
     </footer>
   `,
@@ -36,6 +37,7 @@ import { APP_VERSION } from '../version';
 })
 export class FooterComponent {
   private swUpdate = inject(SwUpdate);
+  readonly i18n = inject(I18nService);
   readonly version = APP_VERSION;
   readonly updateAvailable = signal(false);
 

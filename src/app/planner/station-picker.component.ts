@@ -1,7 +1,8 @@
 import {
-  Component, input, output, signal, computed, effect, viewChild, ElementRef,
+  Component, input, output, signal, computed, effect, viewChild, ElementRef, inject,
 } from '@angular/core';
 import { Station } from '../models/route.model';
+import { I18nService } from '../i18n/i18n.service';
 
 // Accent-insensitive compare: "estadio unio" should still match "Estadio Unión".
 const DIACRITICS = /[\u0300-\u036f]/g;
@@ -20,14 +21,14 @@ const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(DIACRI
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
-          placeholder="— busca estación —"
+          [placeholder]="i18n.t('station.placeholder')"
           [value]="inputValue()"
           (focus)="onFocus()"
           (input)="onInput($any($event.target).value)"
           (blur)="onBlur()"
         />
         @if (selectedId()) {
-          <button class="picker-clear" (mousedown)="$event.preventDefault(); clear()" title="Limpiar">✕</button>
+          <button class="picker-clear" (mousedown)="$event.preventDefault(); clear()" [title]="i18n.t('station.clearTitle')">✕</button>
         }
       </div>
       @if (showList()) {
@@ -107,6 +108,8 @@ const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(DIACRI
   `],
 })
 export class StationPickerComponent {
+  readonly i18n = inject(I18nService);
+
   label      = input<string>('');
   stations   = input<Station[]>([]);
   selectedId = input<string>('');

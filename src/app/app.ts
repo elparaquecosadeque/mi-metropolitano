@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { PlannerComponent } from './planner/planner.component';
 import { AdminComponent } from './admin/admin.component';
@@ -10,12 +10,13 @@ import { AboutPageComponent } from './pages/about-page.component';
 import { InstallPageComponent } from './pages/install-page.component';
 import { InstallPromptService } from './services/install-prompt.service';
 import { isStagingHost } from './telemetry/telemetry.service';
+import { I18nService } from './i18n/i18n.service';
 
-const PAGE_TITLES: Record<string, string> = {
-  rutas: 'Rutas | Mi Metropolitano',
-  contacto: 'Contacto | Mi Metropolitano',
-  nosotros: 'Nosotros | Mi Metropolitano',
-  instalar: 'Instalar la app | Mi Metropolitano',
+const PAGE_TITLE_KEY: Record<string, string> = {
+  rutas: 'page.routes',
+  contacto: 'page.contact',
+  nosotros: 'page.about',
+  instalar: 'page.install',
 };
 
 @Component({
@@ -48,14 +49,17 @@ export class App {
   private readonly installPrompt = inject(InstallPromptService);
   private readonly titleService = inject(Title);
   private readonly meta = inject(Meta);
+  private readonly i18n = inject(I18nService);
 
   private readonly params = new URLSearchParams(window.location.search);
   readonly isAdmin = this.params.has('admin');
   readonly page = this.params.get('page');
 
   constructor() {
-    const title = this.page && PAGE_TITLES[this.page];
-    if (title) this.titleService.setTitle(title);
+    const titleKey = this.page && PAGE_TITLE_KEY[this.page];
+    if (titleKey) {
+      effect(() => this.titleService.setTitle(`${this.i18n.t(titleKey)} | Mi Metropolitano`));
+    }
 
     // Same build serves staging and prod — the host is the only thing telling them apart
     // (see isStagingHost in telemetry.service.ts). Keep the stage domain out of search results.

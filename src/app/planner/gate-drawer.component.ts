@@ -1,10 +1,12 @@
-import { Component, ElementRef, OnDestroy, input, output, viewChildren, signal, afterNextRender } from '@angular/core';
+import { Component, ElementRef, OnDestroy, input, output, viewChildren, signal, afterNextRender, inject } from '@angular/core';
 import { Gate, StationMap } from '../data/gates';
 import { projectToPixel } from '../data/geo';
 import { GATE_LOCATION_ENABLED } from '../feature-flags';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface GateStep {
-  stepLabel: string; // "Paso 1 de 2" / "Paso 2 de 2 · Trasbordo"
+  stepLabel: string; // already-translated, e.g. "Step 1" / "How to board"
+  isTransfer: boolean;
   stationName: string;
   routeName: string;
   gate: Gate;
@@ -39,20 +41,20 @@ const ARRIVAL_METERS = 15;
   template: `
     <div class="page">
       <div class="page-head">
-        <button class="back-btn" (click)="goBack()" aria-label="Volver">← Volver</button>
-        <span class="label">Cómo llegar a tu bus</span>
+        <button class="back-btn" (click)="goBack()" [attr.aria-label]="i18n.t('gate.backAria')">{{ i18n.t('gate.back') }}</button>
+        <span class="label">{{ i18n.t('gate.headLabel') }}</span>
       </div>
 
       <div class="deck" #deck (scroll)="onScroll()">
         @for (step of steps(); track $index; let i = $index) {
           <article class="gate-card">
-            <span class="step" [class.transfer]="step.stepLabel.includes('Trasbordo')">{{ step.stepLabel }}</span>
-            <h2>En estación {{ step.stationName }}</h2>
-            <p class="subtitle">Acércate a la <strong>{{ step.gate.label }}</strong> para tomar {{ step.routeName }}</p>
+            <span class="step" [class.transfer]="step.isTransfer">{{ step.stepLabel }}</span>
+            <h2>{{ i18n.t('gate.atStation', { name: step.stationName }) }}</h2>
+            <p class="subtitle">{{ i18n.t('gate.approachPrefix') }} <strong>{{ step.gate.label }}</strong> {{ i18n.t('gate.approachSuffix') }} {{ step.routeName }}</p>
 
             @if (step.map; as map) {
               <div class="map-box">
-                <img [src]="map.image" [alt]="'Mapa de ' + step.stationName" [width]="map.width" [height]="map.height" />
+                <img [src]="map.image" [alt]="i18n.t('gate.mapAlt', { name: step.stationName })" [width]="map.width" [height]="map.height" />
                 @if (locationEnabled) {
                   @let state = locateStates()[i] ?? { kind: 'idle' };
                   @if (state.kind === 'found') {
@@ -61,15 +63,15 @@ const ARRIVAL_METERS = 15;
                 }
               </div>
             } @else {
-              <p class="map-missing">Todavía no tenemos un mapa de esta estación — solo el nombre de la puerta.</p>
+              <p class="map-missing">{{ i18n.t('gate.mapMissing') }}</p>
             }
 
             @if (step.gate.photo) {
               <button class="photo-btn" (click)="togglePhoto(i)">
-                {{ photoOpen()[i] ? 'Ocultar foto' : '📷 Ver foto del embarque' }}
+                {{ photoOpen()[i] ? i18n.t('gate.hidePhoto') : i18n.t('gate.viewPhoto') }}
               </button>
               @if (photoOpen()[i]) {
-                <img class="gate-photo" [src]="step.gate.photo" [alt]="'Foto de la ' + step.gate.label" />
+                <img class="gate-photo" [src]="step.gate.photo" [alt]="i18n.t('gate.photoAlt', { label: step.gate.label })" />
               }
             }
 
@@ -77,27 +79,27 @@ const ARRIVAL_METERS = 15;
               @switch (locateStates()[i]?.kind ?? 'idle') {
                 @case ('priming') {
                   <div class="primer">
-                    <p>Vamos a pedirte tu ubicación solo para mostrarte qué tan lejos estás de la puerta. No se guarda ni se envía a ningún servidor.</p>
+                    <p>{{ i18n.t('gate.primerText') }}</p>
                     <div class="primer-actions">
-                      <button class="primer-go" (click)="confirmLocate(i)">Sí, continuar</button>
-                      <button class="primer-cancel" (click)="setState(i, { kind: 'idle' })">Ahora no</button>
+                      <button class="primer-go" (click)="confirmLocate(i)">{{ i18n.t('gate.primerGo') }}</button>
+                      <button class="primer-cancel" (click)="setState(i, { kind: 'idle' })">{{ i18n.t('gate.primerCancel') }}</button>
                     </div>
                   </div>
                 }
                 @default {
                   <button class="locate-btn" [disabled]="locateStates()[i]?.kind === 'locating'" (click)="locate(i)">
-                    {{ locateStates()[i]?.kind === 'locating' ? '📍 Obteniendo tu ubicación…' : '📍 No encuentro mi puerta, guíame' }}
+                    {{ locateStates()[i]?.kind === 'locating' ? i18n.t('gate.locating') : i18n.t('gate.locateBtn') }}
                   </button>
                   @switch (locateStates()[i]?.kind) {
                     @case ('found') {
                       @if (asFound(locateStates()[i]).meters <= arrivalMeters) {
-                        <p class="locate-note ok">✅ ¡Llegaste! Estás en la puerta.</p>
+                        <p class="locate-note ok">{{ i18n.t('gate.arrived') }}</p>
                       } @else {
-                        <p class="locate-note ok">📍 Estás a ~{{ asFound(locateStates()[i]).meters }} m de la puerta.</p>
+                        <p class="locate-note ok">{{ i18n.t('gate.distance', { n: asFound(locateStates()[i]).meters }) }}</p>
                       }
                     }
                     @case ('out-of-bounds') {
-                      <p class="locate-note">No pudimos ubicarte en este mapa — pareces estar fuera del área que cubre.</p>
+                      <p class="locate-note">{{ i18n.t('gate.outOfBounds') }}</p>
                     }
                     @case ('error') {
                       <p class="locate-note">{{ asError(locateStates()[i]).text }}</p>
@@ -111,11 +113,11 @@ const ARRIVAL_METERS = 15;
       </div>
 
       @if (steps().length > 1) {
-        <button class="chevron prev" [disabled]="activeIndex() === 0" (click)="goTo(activeIndex() - 1)" aria-label="Paso anterior">‹</button>
-        <button class="chevron next" [disabled]="activeIndex() === steps().length - 1" (click)="goTo(activeIndex() + 1)" aria-label="Paso siguiente">›</button>
+        <button class="chevron prev" [disabled]="activeIndex() === 0" (click)="goTo(activeIndex() - 1)" [attr.aria-label]="i18n.t('gate.prevStepAria')">‹</button>
+        <button class="chevron next" [disabled]="activeIndex() === steps().length - 1" (click)="goTo(activeIndex() + 1)" [attr.aria-label]="i18n.t('gate.nextStepAria')">›</button>
         <div class="dots">
           @for (step of steps(); track $index; let i = $index) {
-            <button class="dot" [class.active]="i === activeIndex()" (click)="goTo(i)" [attr.aria-label]="'Ir al paso ' + (i + 1)"></button>
+            <button class="dot" [class.active]="i === activeIndex()" (click)="goTo(i)" [attr.aria-label]="i18n.t('gate.goToStepAria', { n: i + 1 })"></button>
           }
         </div>
       }
@@ -263,6 +265,7 @@ const ARRIVAL_METERS = 15;
   `],
 })
 export class GateDrawerComponent implements OnDestroy {
+  readonly i18n = inject(I18nService);
   steps = input.required<GateStep[]>();
   startIndex = input(0);
   closed = output<void>();
@@ -328,10 +331,7 @@ export class GateDrawerComponent implements OnDestroy {
     try {
       const status = await navigator.permissions?.query({ name: 'geolocation' });
       if (status?.state === 'denied') {
-        this.setState(i, {
-          kind: 'error',
-          text: 'Ya bloqueaste el permiso de ubicación para este sitio. Actívalo desde el ícono junto a la dirección (⚙️/🔒) → Permisos del sitio → Ubicación.',
-        });
+        this.setState(i, { kind: 'error', text: this.i18n.t('gate.errPermissionBlocked') });
         return;
       }
       if (status?.state === 'granted') return this.confirmLocate(i);
@@ -355,8 +355,8 @@ export class GateDrawerComponent implements OnDestroy {
       (err) => {
         const text =
           err.code === err.PERMISSION_DENIED
-            ? 'No diste permiso de ubicación. Puedes intentarlo de nuevo cuando quieras.'
-            : 'No pudimos obtener tu ubicación ahora. Inténtalo de nuevo en un momento.';
+            ? this.i18n.t('gate.errPermissionDenied')
+            : this.i18n.t('gate.errGeneric');
         this.setState(i, { kind: 'error', text });
       },
       { enableHighAccuracy: true, timeout: 8000 },

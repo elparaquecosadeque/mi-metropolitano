@@ -1,22 +1,23 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ROUTES, STATION_MAP } from '../data/routes';
 import { ScheduleService } from '../services/schedule.service';
-import { formatDays, type Route, type RouteType, type Schedule } from '../models/route.model';
+import { type DayGroup, type Route, type RouteType, type Schedule } from '../models/route.model';
+import { I18nService } from '../i18n/i18n.service';
 
-const TYPE_LABELS: Record<RouteType, string> = {
-  expreso: '⚡ Expresos',
-  troncal: '🚌 Troncales',
-  lechucero: '🦉 Lechuceros',
+const TYPE_LABEL_KEY: Record<RouteType, string> = {
+  expreso: 'routes.type.expreso',
+  troncal: 'routes.type.troncal',
+  lechucero: 'routes.type.lechucero',
 };
 
 type RouteStatus = 'running' | 'closing-soon' | 'opening-soon' | 'closed';
 type FilterMode = 'all' | 'running' | 'closed' | 'soon';
 
-const STATUS_LABEL: Record<RouteStatus, string> = {
-  running: 'Funcionando',
-  'closing-soon': 'Por finalizar',
-  'opening-soon': 'Por comenzar',
-  closed: 'No disponible',
+const STATUS_LABEL_KEY: Record<RouteStatus, string> = {
+  running: 'routes.status.running',
+  'closing-soon': 'routes.status.closingSoon',
+  'opening-soon': 'routes.status.openingSoon',
+  closed: 'routes.status.closed',
 };
 
 const STATUS_DOT: Record<RouteStatus, string> = {
@@ -31,18 +32,18 @@ const STATUS_DOT: Record<RouteStatus, string> = {
   standalone: true,
   template: `
     <div class="page">
-      <h2>Rutas y horarios</h2>
+      <h2>{{ i18n.t('routes.title') }}</h2>
 
       <div class="filter-bar">
-        <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">Todas</button>
-        <button [class.active]="filterMode() === 'running'" (click)="filterMode.set('running')">Funcionando ahora</button>
-        <button [class.active]="filterMode() === 'closed'" (click)="filterMode.set('closed')">No disponibles</button>
-        <button [class.active]="filterMode() === 'soon'" (click)="filterMode.set('soon')">Por comenzar/finalizar</button>
+        <button [class.active]="filterMode() === 'all'" (click)="filterMode.set('all')">{{ i18n.t('routes.filterAll') }}</button>
+        <button [class.active]="filterMode() === 'running'" (click)="filterMode.set('running')">{{ i18n.t('routes.filterRunning') }}</button>
+        <button [class.active]="filterMode() === 'closed'" (click)="filterMode.set('closed')">{{ i18n.t('routes.filterClosed') }}</button>
+        <button [class.active]="filterMode() === 'soon'" (click)="filterMode.set('soon')">{{ i18n.t('routes.filterSoon') }}</button>
       </div>
 
       @for (group of filteredGroups(); track group.type) {
         <section class="group">
-          <h3>{{ group.label }}</h3>
+          <h3>{{ groupLabel(group.type) }}</h3>
           @for (route of group.routes; track route.id) {
             <div class="route-card">
               <button class="route-head" (click)="toggle(route.id)" [style.borderLeftColor]="route.color">
@@ -86,7 +87,7 @@ const STATUS_DOT: Record<RouteStatus, string> = {
           }
         </section>
       } @empty {
-        <p class="hint">Ninguna ruta calza con este filtro ahora mismo.</p>
+        <p class="hint">{{ i18n.t('routes.noMatch') }}</p>
       }
     </div>
   `,
@@ -151,11 +152,19 @@ const STATUS_DOT: Record<RouteStatus, string> = {
 })
 export class RoutesPageComponent implements OnDestroy {
   private schedule = inject(ScheduleService);
-  readonly formatDays = formatDays;
+  readonly i18n = inject(I18nService);
+
+  formatDays(days: DayGroup[]): string {
+    return days.map((d) => this.i18n.t(`days.${d}`)).join(', ');
+  }
 
   readonly groups = (['expreso', 'troncal', 'lechucero'] as RouteType[])
-    .map(type => ({ type, label: TYPE_LABELS[type], routes: ROUTES.filter((r: Route) => r.type === type) }))
+    .map(type => ({ type, routes: ROUTES.filter((r: Route) => r.type === type) }))
     .filter(g => g.routes.length > 0);
+
+  groupLabel(type: RouteType): string {
+    return this.i18n.t(TYPE_LABEL_KEY[type]);
+  }
 
   readonly expanded = signal<string | null>(null);
   readonly filterMode = signal<FilterMode>('all');
@@ -193,7 +202,7 @@ export class RoutesPageComponent implements OnDestroy {
   }
 
   statusLabel(route: Route): string {
-    return STATUS_LABEL[this.routeStatus(route)];
+    return this.i18n.t(STATUS_LABEL_KEY[this.routeStatus(route)]);
   }
 
   statusDot(route: Route): string {

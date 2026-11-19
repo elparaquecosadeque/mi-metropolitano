@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TELEMETRY } from '../telemetry/telemetry.service';
+import { I18nService } from '../i18n/i18n.service';
 
 const CONTACT_EMAIL = 'contacto@oficinamentaldebruno.com';
 
-const SUBJECTS = ['Comentario', 'Sugerencia', 'Reporte de problema'] as const;
+const SUBJECT_KEYS = ['contact.subject.comment', 'contact.subject.suggestion', 'contact.subject.report'] as const;
 
 type Status = 'idle' | 'sending' | 'sent' | 'queued' | 'failed';
 
@@ -14,45 +15,40 @@ type Status = 'idle' | 'sending' | 'sent' | 'queued' | 'failed';
   imports: [FormsModule],
   template: `
     <div class="page">
-      <h2>Contacto / Reporte de problemas</h2>
-      <p class="hint">¿Encontraste un error en una ruta u horario? ¿Tienes una sugerencia? Escríbenos.</p>
+      <h2>{{ i18n.t('contact.title') }}</h2>
+      <p class="hint">{{ i18n.t('contact.hint') }}</p>
 
       <form (submit)="send($event)">
         <label>
-          Motivo
+          {{ i18n.t('contact.subjectLabel') }}
           <select [(ngModel)]="subject" name="subject">
-            @for (s of subjects; track s) { <option [value]="s">{{ s }}</option> }
+            @for (key of subjectKeys; track key) { <option [value]="key">{{ i18n.t(key) }}</option> }
           </select>
         </label>
 
         <label>
-          Tu correo (opcional, para responderte)
+          {{ i18n.t('contact.emailLabel') }}
           <input type="email" [(ngModel)]="replyTo" name="replyTo" placeholder="tucorreo@ejemplo.com" />
         </label>
 
         <label>
-          Mensaje
-          <textarea [(ngModel)]="message" name="message" rows="5" required placeholder="Cuéntanos qué pasó..."></textarea>
+          {{ i18n.t('contact.messageLabel') }}
+          <textarea [(ngModel)]="message" name="message" rows="5" required [placeholder]="i18n.t('contact.messagePlaceholder')"></textarea>
         </label>
 
         <button type="submit" [disabled]="!message().trim() || status() === 'sending'">
-          {{ status() === 'sending' ? 'Enviando…' : '✉️ Enviar' }}
+          {{ status() === 'sending' ? i18n.t('contact.sending') : i18n.t('contact.send') }}
         </button>
 
         <div class="status" role="status" aria-live="polite">
           @switch (status()) {
-            @case ('sent') { <p class="ok">✓ Mensaje enviado. ¡Gracias!</p> }
-            @case ('queued') {
-              <p class="warn">
-                📥 Guardado en tu dispositivo. Lo enviaremos solo cuando nuestro servidor esté disponible
-                (mientras tengas la app abierta).
-              </p>
-            }
-            @case ('failed') { <p class="error">No pudimos enviar tu mensaje. Escríbenos por correo, por favor.</p> }
+            @case ('sent') { <p class="ok">{{ i18n.t('contact.sent') }}</p> }
+            @case ('queued') { <p class="warn">{{ i18n.t('contact.queued') }}</p> }
+            @case ('failed') { <p class="error">{{ i18n.t('contact.failed') }}</p> }
           }
         </div>
 
-        <a class="mail-link" [href]="mailtoHref()">¿Urgente? Escríbenos por correo</a>
+        <a class="mail-link" [href]="mailtoHref()">{{ i18n.t('contact.urgentMail') }}</a>
       </form>
     </div>
   `,
@@ -94,16 +90,17 @@ type Status = 'idle' | 'sending' | 'sent' | 'queued' | 'failed';
 })
 export class ContactPageComponent {
   private readonly telemetry = inject(TELEMETRY);
+  readonly i18n = inject(I18nService);
 
-  readonly subjects = SUBJECTS;
-  subject = signal<string>(SUBJECTS[0]);
+  readonly subjectKeys = SUBJECT_KEYS;
+  subject = signal<string>(SUBJECT_KEYS[0]);
   replyTo = signal('');
   message = signal('');
   status = signal<Status>('idle');
 
   // Manual plan B: opens the user's mail client prefilled with what they've typed so far.
   readonly mailtoHref = computed(() => {
-    const subject = encodeURIComponent(`Mi Metropolitano - ${this.subject()}`);
+    const subject = encodeURIComponent(`Mi Metropolitano - ${this.i18n.t(this.subject())}`);
     const body = encodeURIComponent(
       this.message() + (this.replyTo() ? `\n\nCorreo de contacto: ${this.replyTo()}` : ''),
     );
@@ -116,7 +113,7 @@ export class ContactPageComponent {
 
     this.status.set('sending');
     const result = await this.telemetry.report({
-      subject: this.subject(),
+      subject: this.i18n.t(this.subject()),
       message: this.message().trim(),
       replyTo: this.replyTo().trim() || undefined,
     });

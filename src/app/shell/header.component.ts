@@ -1,14 +1,18 @@
 import { Component, inject, signal } from '@angular/core';
 import { ThemeService } from './theme.service';
+import { LanguageSwitcherComponent } from './language-switcher.component';
+import { I18nService } from '../i18n/i18n.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [LanguageSwitcherComponent],
   template: `
     <header>
-      <button class="hamburger" (click)="menuOpen.set(!menuOpen())" aria-label="Menú" [attr.aria-expanded]="menuOpen()">☰</button>
+      <button class="hamburger" (click)="menuOpen.set(!menuOpen())" [attr.aria-label]="i18n.t('header.menuAria')" [attr.aria-expanded]="menuOpen()">☰</button>
       <h1><a href="?">🚌 Metropolitano</a></h1>
-      <button class="theme-btn" (click)="theme.toggle()" [title]="theme.isLight() ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'">
+      <app-language-switcher />
+      <button class="theme-btn" (click)="theme.toggle()" [title]="theme.isLight() ? i18n.t('header.themeDark') : i18n.t('header.themeLight')">
         {{ theme.isLight() ? '🌙' : '☀️' }}
       </button>
 
@@ -16,12 +20,12 @@ import { ThemeService } from './theme.service';
         <div class="menu-backdrop" (click)="menuOpen.set(false)"></div>
       }
       <nav class="menu" [class.open]="menuOpen()">
-        <a href="?" (click)="menuOpen.set(false)">🏠 Inicio</a>
-        <a href="?page=rutas" (click)="menuOpen.set(false)">🗺️ Consulta de rutas</a>
-        <a href="?page=contacto" (click)="menuOpen.set(false)">✉️ Contacto / Reporte</a>
-        <a href="?page=nosotros" (click)="menuOpen.set(false)">ℹ️ Nosotros</a>
-        <a href="?page=instalar" (click)="menuOpen.set(false)">📲 Cómo instalar</a>
-        <a href="?tour=1" (click)="menuOpen.set(false)">🧭 Ver tutorial</a>
+        <a href="?" (click)="menuOpen.set(false)">{{ i18n.t('header.home') }}</a>
+        <a href="?page=rutas" (click)="menuOpen.set(false)">{{ i18n.t('header.routes') }}</a>
+        <a href="?page=contacto" (click)="menuOpen.set(false)">{{ i18n.t('header.contact') }}</a>
+        <a href="?page=nosotros" (click)="menuOpen.set(false)">{{ i18n.t('header.about') }}</a>
+        <a href="?page=instalar" (click)="menuOpen.set(false)">{{ i18n.t('header.install') }}</a>
+        <a href="?tour=1" (click)="menuOpen.set(false)">{{ i18n.t('header.tour') }}</a>
       </nav>
     </header>
   `,
@@ -99,5 +103,6 @@ import { ThemeService } from './theme.service';
 })
 export class HeaderComponent {
   readonly theme = inject(ThemeService);
+  readonly i18n = inject(I18nService);
   readonly menuOpen = signal(false);
 }

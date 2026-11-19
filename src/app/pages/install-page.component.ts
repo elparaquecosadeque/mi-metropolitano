@@ -1,33 +1,34 @@
 import { Component, inject } from '@angular/core';
 import { InstallPromptService } from '../services/install-prompt.service';
+import { I18nService } from '../i18n/i18n.service';
 
 @Component({
   selector: 'app-install-page',
   standalone: true,
   template: `
     <div class="page">
-      <h2>Cómo instalar la app</h2>
-      <p class="hint">Añádela a tu pantalla de inicio y ábrela como cualquier otra app, sin buscarla en el navegador cada vez.</p>
+      <h2>{{ i18n.t('install.title') }}</h2>
+      <p class="hint">{{ i18n.t('install.hint') }}</p>
 
       <section class="platform">
-        <h3>🤖 Android (Chrome)</h3>
+        <h3>{{ i18n.t('install.androidTitle') }}</h3>
         @if (installPrompt.available()) {
-          <button class="install-btn" (click)="installPrompt.promptInstall()">📲 Instalar app</button>
+          <button class="install-btn" (click)="installPrompt.promptInstall()">{{ i18n.t('install.androidBtn') }}</button>
         } @else {
           <ol>
-            <li>Toca el menú <strong>⋮</strong> arriba a la derecha</li>
-            <li>Selecciona <strong>"Instalar app"</strong> o <strong>"Añadir a pantalla de inicio"</strong></li>
-            <li>Confirma tocando <strong>"Instalar"</strong></li>
+            <li [innerHTML]="i18n.t('install.androidStep1')"></li>
+            <li [innerHTML]="i18n.t('install.androidStep2')"></li>
+            <li [innerHTML]="i18n.t('install.androidStep3')"></li>
           </ol>
         }
       </section>
 
       <section class="platform">
-        <h3>🍎 iPhone / iPad (Safari)</h3>
+        <h3>{{ i18n.t('install.iosTitle') }}</h3>
         <ol>
-          <li>Toca el ícono de <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba)</li>
-          <li>Desplázate y selecciona <strong>"Añadir a pantalla de inicio"</strong></li>
-          <li>Toca <strong>"Añadir"</strong> arriba a la derecha</li>
+          <li [innerHTML]="i18n.t('install.iosStep1')"></li>
+          <li [innerHTML]="i18n.t('install.iosStep2')"></li>
+          <li [innerHTML]="i18n.t('install.iosStep3')"></li>
         </ol>
       </section>
     </div>
@@ -58,4 +59,5 @@ import { InstallPromptService } from '../services/install-prompt.service';
 })
 export class InstallPageComponent {
   readonly installPrompt = inject(InstallPromptService);
+  readonly i18n = inject(I18nService);
 }
