@@ -43,7 +43,7 @@ export class PlannerComponent implements OnDestroy {
   datetimeInputValue = toDatetimeLocal(new Date());
   withTransfers = signal(true);
   filterMode = signal<'all' | 'fastest'>('all');
-  hideUnavailable = signal(false);
+  hideUnavailable = signal(true);
   favorites = signal<Favorite[]>(this.loadFavorites());
   copied = signal(false);
   showQr = signal(false);

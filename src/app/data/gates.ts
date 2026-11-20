@@ -57,11 +57,24 @@ function genericPhotoFor(label: string): string | undefined {
   return GENERIC_GATE_PHOTOS.has(key) ? `embarques/embarque-${key}.webp` : undefined;
 }
 
+// Estación Central has its own reference photos, one per embarque number regardless of norte/sur
+// (public/embarques/central-N.webp) — overrides the system-wide norte/sur generics above.
+// No photo yet for embarque 8 — left blank rather than guessed.
+const CENTRAL_GATE_PHOTOS = new Set([1, 2, 3, 4, 5, 6, 7, 9, 10]);
+
+function centralPhotoFor(label: string): string | undefined {
+  const match = /^embarque\s+(?:norte|sur)\s+(\d+)\s*$/i.exec(label.trim());
+  const n = match ? Number(match[1]) : NaN;
+  return CENTRAL_GATE_PHOTOS.has(n) ? `embarques/central-${n}.webp` : undefined;
+}
+
 export function gateFor(boardingStationId: string, routeId: string, alightingStationId: string): Gate | undefined {
   const direction = legDirection(boardingStationId, alightingStationId);
   const gate = GATES[`${boardingStationId}|${routeId}|${direction}`];
   if (!gate) return undefined;
-  return gate.photo ? gate : { ...gate, photo: genericPhotoFor(gate.label) };
+  if (gate.photo) return gate;
+  const photo = boardingStationId === 'estacion-central' ? centralPhotoFor(gate.label) : genericPhotoFor(gate.label);
+  return { ...gate, photo };
 }
 
 export function stationMapFor(boardingStationId: string, alightingStationId: string): StationMap | undefined {

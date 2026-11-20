@@ -5,6 +5,9 @@ import { I18nService } from '../i18n/i18n.service';
 
 const CONTACT_EMAIL = 'contacto@oficinamentaldebruno.com';
 
+/** sessionStorage key a gate-drawer "report incorrect gate" button fills in before navigating here. */
+const REPORT_DRAFT_KEY = 'metro_report_draft';
+
 const SUBJECT_KEYS = ['contact.subject.comment', 'contact.subject.suggestion', 'contact.subject.report'] as const;
 
 type Status = 'idle' | 'sending' | 'sent' | 'queued' | 'failed';
@@ -97,6 +100,15 @@ export class ContactPageComponent {
   replyTo = signal('');
   message = signal('');
   status = signal<Status>('idle');
+
+  constructor() {
+    const draft = sessionStorage.getItem(REPORT_DRAFT_KEY);
+    if (draft) {
+      sessionStorage.removeItem(REPORT_DRAFT_KEY);
+      this.subject.set('contact.subject.report');
+      this.message.set(draft);
+    }
+  }
 
   // Manual plan B: opens the user's mail client prefilled with what they've typed so far.
   readonly mailtoHref = computed(() => {

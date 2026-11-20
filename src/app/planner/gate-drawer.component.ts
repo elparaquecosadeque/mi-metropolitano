@@ -24,6 +24,9 @@ type LocateState =
 /** Close enough to the confirmed gate's coordinates to call it "arrived" instead of showing a distance. */
 const ARRIVAL_METERS = 15;
 
+/** sessionStorage key handing a prefilled message to the contact page (shared with contact-page.component.ts). */
+const REPORT_DRAFT_KEY = 'metro_report_draft';
+
 /**
  * Full-screen page showing where to board, one card per leg that has a confirmed gate. The map
  * is a pre-rendered static image (scripts/gen-gate-maps.mjs) instead of a live tile library — no
@@ -53,7 +56,7 @@ const ARRIVAL_METERS = 15;
             <p class="subtitle">{{ i18n.t('gate.approachPrefix') }} <strong>{{ step.gate.label }}</strong> {{ i18n.t('gate.approachSuffix') }} {{ step.routeName }}</p>
 
             @if (step.map; as map) {
-              <div class="map-box">
+              <div class="map-box" (click)="openFullscreenMap(map, step.stationName)">
                 <img [src]="map.image" [alt]="i18n.t('gate.mapAlt', { name: step.stationName })" [width]="map.width" [height]="map.height" />
                 @if (locationEnabled) {
                   @let state = locateStates()[i] ?? { kind: 'idle' };
@@ -61,6 +64,7 @@ const ARRIVAL_METERS = 15;
                     <div class="you-dot" [style.left.%]="(state.x / map.width) * 100" [style.top.%]="(state.y / map.height) * 100"></div>
                   }
                 }
+                <span class="map-hint" [class.faded]="mapHintDismissed()">{{ i18n.t('gate.mapHint') }}</span>
               </div>
             } @else {
               <p class="map-missing">{{ i18n.t('gate.mapMissing') }}</p>
@@ -74,6 +78,8 @@ const ARRIVAL_METERS = 15;
                 <img class="gate-photo" [src]="step.gate.photo" [alt]="i18n.t('gate.photoAlt', { label: step.gate.label })" />
               }
             }
+
+            <button class="report-btn" (click)="reportWrongGate(i)">{{ i18n.t('gate.reportWrong') }}</button>
 
             @if (locationEnabled) {
               @switch (locateStates()[i]?.kind ?? 'idle') {
@@ -122,6 +128,13 @@ const ARRIVAL_METERS = 15;
         </div>
       }
     </div>
+
+    @if (fullscreenMap(); as fs) {
+      <div class="map-fullscreen" (click)="closeFullscreenMap()">
+        <img [src]="fs.map.image" [alt]="i18n.t('gate.mapAlt', { name: fs.stationName })" />
+        <button class="map-fullscreen-close" [attr.aria-label]="i18n.t('gate.closeMapAria')">×</button>
+      </div>
+    }
   `,
   styles: [`
     :host { position: fixed; inset: 0; z-index: 900; }
@@ -183,9 +196,47 @@ const ARRIVAL_METERS = 15;
       overflow: hidden;
       border: 1px solid var(--c-border);
       background: var(--c-surface-2);
+      cursor: zoom-in;
     }
     .map-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .map-missing { font-size: 0.85rem; color: var(--c-text-muted); }
+
+    .map-hint {
+      position: absolute;
+      left: 50%; bottom: 0.6rem;
+      transform: translateX(-50%);
+      background: color-mix(in srgb, #000 65%, transparent);
+      color: #fff;
+      font-size: 0.75rem; font-weight: 600;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    .map-hint.faded { opacity: 0; }
+
+    .map-fullscreen {
+      position: fixed; inset: 0; z-index: 2000;
+      background: color-mix(in srgb, #000 92%, transparent);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      cursor: zoom-out;
+    }
+    .map-fullscreen img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+    .map-fullscreen-close {
+      position: absolute;
+      top: max(0.8rem, env(safe-area-inset-top, 0px));
+      right: max(0.8rem, env(safe-area-inset-right, 0px));
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: color-mix(in srgb, #fff 15%, transparent);
+      color: #fff;
+      border: none;
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+    }
 
     .you-dot {
       position: absolute;
@@ -242,6 +293,18 @@ const ARRIVAL_METERS = 15;
       border-radius: 10px;
       cursor: pointer;
     }
+    .report-btn {
+      align-self: flex-start;
+      background: transparent;
+      border: none;
+      color: var(--c-text-muted);
+      font: inherit; font-size: 0.78rem;
+      text-decoration: underline;
+      padding: 0;
+      cursor: pointer;
+    }
+    .report-btn:hover { color: var(--c-danger); }
+
     .locate-btn:hover { border-color: var(--c-boarding); }
     .locate-btn:disabled { opacity: 0.7; cursor: default; }
     .locate-note { font-size: 0.78rem; line-height: 1.4; color: var(--c-danger); margin: 0; }
@@ -275,6 +338,8 @@ export class GateDrawerComponent implements OnDestroy {
   activeIndex = signal(0);
   locateStates = signal<Record<number, LocateState>>({});
   photoOpen = signal<Record<number, boolean>>({});
+  mapHintDismissed = signal(false);
+  fullscreenMap = signal<{ map: StationMap; stationName: string } | null>(null);
 
   private deckEl = viewChildren<ElementRef<HTMLDivElement>>('deck');
   private readonly onPopState = () => this.closed.emit();
@@ -317,12 +382,22 @@ export class GateDrawerComponent implements OnDestroy {
     const deck = this.deckEl()[0]?.nativeElement;
     if (!deck) return;
     this.activeIndex.set(Math.round(deck.scrollLeft / Math.max(deck.clientWidth, 1)));
+    this.mapHintDismissed.set(true);
   }
 
   goTo(index: number) {
     const deck = this.deckEl()[0]?.nativeElement;
     if (!deck) return;
     deck.scrollTo({ left: index * deck.clientWidth, behavior: 'smooth' });
+    this.mapHintDismissed.set(true);
+  }
+
+  openFullscreenMap(map: StationMap, stationName: string) {
+    this.fullscreenMap.set({ map, stationName });
+  }
+
+  closeFullscreenMap() {
+    this.fullscreenMap.set(null);
   }
 
   /** Decides whether to show our own explainer first, skip straight to it, or refuse outright. */
@@ -339,6 +414,28 @@ export class GateDrawerComponent implements OnDestroy {
       /* Permissions API not available everywhere — fall through to the primer either way */
     }
     this.setState(i, { kind: 'priming' });
+  }
+
+  /** Stashes a report + coords for the contact page to pick up, then navigates there (no Router — full nav). */
+  reportWrongGate(i: number) {
+    const step = this.steps()[i];
+    if (!step) return;
+    const header = this.i18n.t('gate.reportWrongStationLine', { station: step.stationName, gate: step.gate.label });
+
+    const send = (body: string) => {
+      sessionStorage.setItem(REPORT_DRAFT_KEY, `${header}\n\n${body}`);
+      window.location.href = '?page=contacto';
+    };
+
+    if (!navigator.geolocation) {
+      send(this.i18n.t('gate.reportWrongNoLocation'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => send(`${this.i18n.t('gate.reportWrongMessage')}${pos.coords.latitude}, ${pos.coords.longitude}`),
+      () => send(this.i18n.t('gate.reportWrongNoLocation')),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
   }
 
   confirmLocate(i: number) {
